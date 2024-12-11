@@ -10,6 +10,11 @@ pub fn eval(expr: AST) {
                     }
                 }
 
+                "exit" => {
+                    println!("Exiting...");
+                    std::process::exit(0);
+                }
+
                 _ => {
                     println!("Unknown function: {}", name);
                 }
