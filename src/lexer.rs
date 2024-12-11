@@ -1,8 +1,16 @@
 use logos::Logos;
 
+#[derive(Default, Debug, PartialEq, Clone)]
+pub enum LexingError {
+    #[default]
+    UnexpectedToken,
+    ExpectedToken,
+}
+
 #[derive(Logos, Debug, PartialEq)]
+#[logos(extras = LexingError)]
 #[logos(skip r"[ \t\n\f]+")]
-enum Token {
+pub enum Token {
     #[token("let")]
     Let,
 
@@ -16,7 +24,13 @@ enum Token {
     Number,
 
     #[regex(r#""[^"]*""#)]
-    String
+    String,
+    
+    #[token("(")]
+    LParen,
+
+    #[token(")")]
+    RParen,
 }
 
 #[cfg(test)]
@@ -39,5 +53,15 @@ mod tests {
         assert_eq!(lexer.next(), Some(Ok(Token::Identifer)));
         assert_eq!(lexer.next(), Some(Ok(Token::Assign)));
         assert_eq!(lexer.next(), Some(Ok(Token::Number)));
+    }
+
+    #[test]
+    fn expr() {
+        let mut lexer = Token::lexer("print(\"Hello, world!\")");
+        
+        for token in lexer {
+            println!("{:?}", token);
+        }
+
     }
 }
