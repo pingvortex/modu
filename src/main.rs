@@ -9,8 +9,9 @@ fn main() {
 
     let file = std::fs::read_to_string(&args[2]).unwrap();
 
+    let context = &mut std::collections::HashMap::new();
+
     for line in file.lines() {
-        let expr = parser::parse_call(line).unwrap();
-        eval::eval(expr);
+        parser::parse_line(line, context).unwrap();
     }   
 }

@@ -1,16 +1,57 @@
 use crate::ast::AST;
 use crate::lexer::{Token, LexingError};
+use crate::eval::eval;
 
 use logos::Logos;
+use std::collections::HashMap;
 
-pub fn parse_call(input: &str) -> Result<AST, String> {
+pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     let mut lexer = Token::lexer(input);
     let mut ast = Vec::new();
 
     while let Some(token) = lexer.next() {
         match token {
+            Ok(Token::Comment) => {
+                break;
+            }
+
+            Ok(Token::Let) => {
+                ast.push(AST::LetDeclaration {
+                    name: None,
+                    value: Box::new(AST::Null),
+                });
+            }
+
             Ok(Token::Identifer) => {
-                ast.push(AST::Identifer(lexer.slice().to_string()));
+                let value = ast.pop().unwrap_or(AST::Null);
+
+                if let AST::LetDeclaration { name, value } = value {
+                    ast.push(AST::LetDeclaration {
+                        name: Some(lexer.slice().to_string()),
+                        value,
+                    });
+                } else {
+                    if let AST::Call { name, mut args } = value {
+                        args.push(AST::Identifer(lexer.slice().to_string()));
+                        ast.push(AST::Call {
+                            name,
+                            args,
+                        });
+                    } else {
+                        ast.push(AST::Identifer(lexer.slice().to_string()));
+                    }
+                }
+            }
+
+            Ok(Token::Assign) => {
+                if let Some(AST::LetDeclaration { name, value }) = ast.pop() {                    
+                    ast.push(AST::LetDeclaration {
+                        name,
+                        value: Box::new(AST::Null),
+                    });
+                } else {
+                    return Err("Expected a let declaration before '='".to_string());
+                }
             }
 
             Ok(Token::LParen) => {
@@ -18,20 +59,49 @@ pub fn parse_call(input: &str) -> Result<AST, String> {
                     ast.push(AST::Call {
                         name,
                         args: Vec::new(),
-                    })
+                    });
                 } else {
                     return Err("Expected an identifier before '(...)'".to_string());
                 }
             }
 
             Ok(Token::String) => {
-                if let Some(AST::Call { name, args }) = ast.pop() {
+                let value = ast.pop().unwrap();
+
+                if let AST::Call { name, mut args } = value {
                     ast.push(AST::Call {
                         name,
                         args: vec![AST::String(lexer.slice().to_string())],
                     });
                 } else {
-                    return Err("Expected a call before a string".to_string());
+                    if let AST::LetDeclaration { name, mut value } = value {
+                        ast.push(AST::LetDeclaration {
+                            name,
+                            value: Box::new(AST::String(lexer.slice().to_string())),
+                        });
+                    } else {
+                        return Err("Expected a call or let declaration before a string".to_string());
+                    }
+                }
+            }
+
+            Ok(Token::Number) => {
+                let value = ast.pop().unwrap();
+
+                if let AST::Call { name, mut args } = value {
+                    ast.push(AST::Call {
+                        name,
+                        args: vec![AST::Number(lexer.slice().parse().unwrap())],
+                    });
+                } else {
+                    if let AST::LetDeclaration { name, mut value } = value {
+                        ast.push(AST::LetDeclaration {
+                            name,
+                            value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                        });
+                    } else {
+                        return Err("Expected a call or let declaration before a number".to_string());
+                    }
                 }
             }
 
@@ -64,8 +134,20 @@ pub fn parse_call(input: &str) -> Result<AST, String> {
     }
 
     if ast.len() == 1 {
+        match ast[0].clone() {
+            AST::LetDeclaration { name, value } => {
+                eval(AST::LetDeclaration { name, value }, context);
+            }
+
+            AST::Call { name, args } => {
+                eval(AST::Call { name, args }, context);
+            }
+
+            _ => {}
+        }
+
         Ok(ast.pop().unwrap())
     } else {
-        Err("Expected a single expression".to_string())
+        Ok(AST::Null)
     }
 }

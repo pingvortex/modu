@@ -1,6 +1,8 @@
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AST {
+    Comment,
+
     LetDeclaration {
         name: Option<String>,
         value: Box<AST>,

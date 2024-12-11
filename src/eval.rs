@@ -1,12 +1,48 @@
 use crate::ast::AST;
 
-pub fn eval(expr: AST) {
+use std::collections::HashMap;
+
+pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
     match expr {
         AST::Call { name, args } => {
             match name.as_str() {
                 "print" => {
-                    if let AST::String(s) = args[0].clone() {
-                        println!("{}", s.replace("\"", ""));
+                    match args[0].clone() {
+                        AST::String(s) => {
+                            println!("{}", s.replace("\"", ""));
+                        }
+
+                        AST::Number(n) => {
+                            println!("{}", n);
+                        }
+
+                        AST::Identifer(name) => {
+                            match context.get(&name) {
+                                Some(value) => {
+                                    match value {
+                                        AST::String(s) => {
+                                            println!("{}", s.replace("\"", ""));
+                                        }
+
+                                        AST::Number(n) => {
+                                            println!("{}", n);
+                                        }
+
+                                        _ => {
+                                            println!("Unknown value: {:?}", value);
+                                        }
+                                    }
+                                }
+
+                                None => {
+                                    println!("Unknown variable: {}", name);
+                                }
+                            }
+                        }
+
+                        _ => {
+                            println!("Unknown argument: {:?}", args[0]);
+                        }
                     }
                 }
 
@@ -18,6 +54,12 @@ pub fn eval(expr: AST) {
                 _ => {
                     println!("Unknown function: {}", name);
                 }
+            }
+        }
+
+        AST::LetDeclaration { name, value } => {
+            if let Some(name) = name {
+                context.insert(name, *value);
             }
         }
 
