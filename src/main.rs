@@ -3,7 +3,6 @@ mod ast;
 mod parser;
 mod eval;
 
-use logos::Logos;
 
 fn main() {
     let args = std::env::args().collect::<Vec<String>>();
