@@ -72,7 +72,7 @@ mod tests {
 
     #[test]
     fn expr() {
-        let mut lexer = Token::lexer("print(\"Hello, world!\")");
+        let lexer = Token::lexer("print(\"Hello, world!\")");
         
         for token in lexer {
             println!("{:?}", token);

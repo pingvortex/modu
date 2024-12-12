@@ -86,13 +86,13 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
             Ok(Token::String) => {
                 let value = ast.pop().unwrap();
 
-                if let AST::Call { name, mut args } = value {
+                if let AST::Call { name, args } = value {
                     ast.push(AST::Call {
                         name,
                         args: vec![AST::String(lexer.slice().to_string())],
                     });
                 } else {
-                    if let AST::LetDeclaration { name, mut value } = value {
+                    if let AST::LetDeclaration { name, value } = value {
                         ast.push(AST::LetDeclaration {
                             name,
                             value: Box::new(AST::String(lexer.slice().to_string())),
@@ -106,13 +106,13 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
             Ok(Token::Number) => {
                 let value = ast.pop().unwrap();
 
-                if let AST::Call { name, mut args } = value {
+                if let AST::Call { name, args } = value {
                     ast.push(AST::Call {
                         name,
                         args: vec![AST::Number(lexer.slice().parse().unwrap())],
                     });
                 } else {
-                    if let AST::LetDeclaration { name, mut value } = value {
+                    if let AST::LetDeclaration { name, value } = value {
                         ast.push(AST::LetDeclaration {
                             name,
                             value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
@@ -126,13 +126,13 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
             Ok(Token::Boolean) => {
                 let value = ast.pop().unwrap();
 
-                if let AST::Call { name, mut args } = value {
+                if let AST::Call { name, args } = value {
                     ast.push(AST::Call {
                         name,
                         args: vec![AST::Boolean(lexer.slice() == "true")],
                     });
                 } else {
-                    if let AST::LetDeclaration { name, mut value } = value {
+                    if let AST::LetDeclaration { name, value } = value {
                         ast.push(AST::LetDeclaration {
                             name,
                             value: Box::new(AST::Boolean(lexer.slice() == "true")),
