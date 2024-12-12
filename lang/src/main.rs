@@ -21,36 +21,30 @@ fn main() {
 
     match action.as_str() {
         "run" => {
-            let file = std::fs::read_to_string(&args[2]).unwrap();
+            let file: String = std::fs::read_to_string(&args[2]).unwrap();
 
             let context = &mut std::collections::HashMap::new();
 
-            let mut current_line = 0;
+            parser::parse(&file, context).unwrap_or_else(|e| {
+                println!("\n⚠️  {}", e.0);
+                println!("Traceback (most recent call last):"); 
+                println!("    File \"{}\", line {}", &args[2], e.1);
 
-            for line in file.lines() {
-                current_line += 1;
-
-                parser::parse_line(line, context).unwrap_or_else(|e| {
-                    println!("\n⚠️  {}", e);
-                    println!("Traceback (most recent call last):"); 
-                    println!("    File \"{}\", line {}", &args[2], current_line);
-
-                    PrettyPrinter::new()
-                        .language("rust")
-                        .header(true)
-                        .line_numbers(true)
-                        .highlight(current_line)
-                        .grid(true)
-                        .input_file(std::path::Path::new(&args[2]))
-                        .line_ranges(
-                            LineRanges::from(vec![LineRange::from(&format!("{}:{}", current_line - 1, current_line + 1)).unwrap()])
-                        )
-                        .print()
-                        .unwrap();
+                PrettyPrinter::new()
+                    .language("rust")
+                    .header(true)
+                    .line_numbers(true)
+                    .highlight(e.1)
+                    .grid(true)
+                    .input_file(std::path::Path::new(&args[2]))
+                    .line_ranges(
+                        LineRanges::from(vec![LineRange::from(&format!("{}:{}", e.1 - 1, e.1 + 1)).unwrap()])
+                    )
+                    .print()
+                    .unwrap();
                     
-                    std::process::exit(1);
-                });
-            }  
+                std::process::exit(1);
+            });
         }
 
         "repl" => {
@@ -73,8 +67,8 @@ fn main() {
 
                 history.push(input.clone());
 
-                parser::parse_line(&input, context).unwrap_or_else(|e| {
-                    println!("\n⚠️  {}", e);
+                parser::parse(&input, context).unwrap_or_else(|e| {
+                    println!("\n⚠️  {}", e.0);
                     println!("Traceback (most recent call last):");
                     println!("    File \"<stdin>\", line {}", current_line);
 

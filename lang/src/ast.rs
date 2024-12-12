@@ -6,6 +6,7 @@ pub enum AST {
     LetDeclaration {
         name: Option<String>,
         value: Box<AST>,
+        line: usize,
     },
 
     Identifer(String),
@@ -24,9 +25,12 @@ pub enum AST {
 
     RParen(Box<AST>),
 
+    Semiclon,
+
     Call {
         name: String,
         args: Vec<AST>,
+        line: usize,
     },
 }
 

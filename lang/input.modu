@@ -1,16 +1,15 @@
-print(123)
-print("woah no way this works. this works?")
-print(true)
+print(123);
+print("woah no way this works. this works?");
+print(true);
 
 // print("this shouldnt print")
 /* print("this shouldnt print either") */
 print("this should print and not break" /* lmao */)
 
-let x = "This broke?"
-let y = false
-let z = 12345
+let x = "This broke?";
+let y = false;
+let z = 12345;
 
-print(x)
-print(y)
-print(z)
-print(a)
+print(x);
+print(y);
+print(z);

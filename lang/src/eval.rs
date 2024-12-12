@@ -5,7 +5,7 @@ use crate::utils;
 
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     match expr {
-        AST::Call { name, args } => {
+        AST::Call { name, args, line: _ } => {
             match name.as_str() {
                 "print" => {
                     if args.len() == 1 {
@@ -70,7 +70,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::LetDeclaration { name, value } => {
+        AST::LetDeclaration { name, value, line: _ } => {
             if utils::is_reserved(name.as_ref().unwrap_or(&"".to_string())) {
                 return Err(format!("{} is a reserved keyword", name.as_ref().unwrap()));
             }

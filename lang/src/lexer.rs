@@ -7,7 +7,7 @@ pub enum LexingError {
     ExpectedToken,
 }
 
-#[derive(Logos, Debug, PartialEq)]
+#[derive(Logos, Debug, PartialEq, Clone)]
 #[logos(extras = LexingError)]
 #[logos(skip r"[ \t\n\f]+")]
 pub enum Token {
@@ -16,6 +16,9 @@ pub enum Token {
 
     #[token("let")]
     Let,
+
+    #[token(";")]
+    Semicolon,
 
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifer,
