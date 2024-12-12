@@ -282,6 +282,22 @@ mod tests {
     }
 
     #[test]
+    fn let_float() {
+        let mut context = HashMap::new();
+        let result = parse("let x = 1.123", &mut context);
+
+        assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    fn let_unknown_var() {
+        let mut context = HashMap::new();
+        let result = parse("let x = y", &mut context);
+
+        assert_eq!(result, Err(("Variable y not found".to_string(), 1)));
+    }
+
+    #[test]
     fn print_str() {
         let mut context = HashMap::new();
         let result = parse("print(\"Hello, world!\")", &mut context);
@@ -298,6 +314,14 @@ mod tests {
     }
 
     #[test]
+    fn print_float() {
+        let mut context = HashMap::new();
+        let result = parse("print(1.123)", &mut context);
+
+        assert_eq!(result, Ok(()));
+    }
+
+    #[test]
     fn print_boolean() {
         let mut context = HashMap::new();
         let result = parse("print(true)", &mut context);
@@ -309,7 +333,7 @@ mod tests {
     #[test]
     fn print_var() {
         let mut context = HashMap::new();
-        parse("let x = 10", &mut context);
+        parse("let x = 10", &mut context).unwrap();
 
         let result = parse("print(x)", &mut context);
 
