@@ -33,6 +33,9 @@ jobs:
         run: |
           npm run build
 
+      - name: Debugging - List directory contents
+        run: ls -R web
+
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
