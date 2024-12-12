@@ -7,42 +7,46 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
         AST::Call { name, args } => {
             match name.as_str() {
                 "print" => {
-                    match args[0].clone() {
-                        AST::String(s) => {
-                            println!("{}", s.replace("\"", ""));
-                        }
-
-                        AST::Number(n) => {
-                            println!("{}", n);
-                        }
-
-                        AST::Identifer(name) => {
-                            match context.get(&name) {
-                                Some(value) => {
-                                    match value {
-                                        AST::String(s) => {
-                                            println!("{}", s.replace("\"", ""));
-                                        }
-
-                                        AST::Number(n) => {
-                                            println!("{}", n);
-                                        }
-
-                                        _ => {
-                                            println!("Unknown value: {:?}", value);
+                    if args.len() == 1 {
+                        match args[0].clone() {
+                            AST::String(s) => {
+                                println!("{}", s.replace("\"", ""));
+                            }
+    
+                            AST::Number(n) => {
+                                println!("{}", n);
+                            }
+    
+                            AST::Identifer(name) => {
+                                match context.get(&name) {
+                                    Some(value) => {
+                                        match value {
+                                            AST::String(s) => {
+                                                println!("{}", s.replace("\"", ""));
+                                            }
+    
+                                            AST::Number(n) => {
+                                                println!("{}", n);
+                                            }
+    
+                                            _ => {
+                                                println!("Unknown value: {:?}", value);
+                                            }
                                         }
                                     }
-                                }
-
-                                None => {
-                                    println!("Unknown variable: {}", name);
+    
+                                    None => {
+                                        println!("Unknown variable: {}", name);
+                                    }
                                 }
                             }
+    
+                            _ => {
+                                println!("{:?}", args[0]);
+                            }
                         }
-
-                        _ => {
-                            println!("Unknown argument: {:?}", args[0]);
-                        }
+                    } else {
+                        println!("Expected 1 argument");
                     }
                 }
 

@@ -6,6 +6,9 @@ use logos::Logos;
 use std::collections::HashMap;
 
 pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    let verbose = std::env::args().collect::<Vec<String>>()
+                            .iter().any(|arg| arg == "--verbose");
+
     let mut lexer = Token::lexer(input);
     let mut ast = Vec::new();
 
@@ -26,10 +29,29 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
                 let value = ast.pop().unwrap_or(AST::Null);
 
                 if let AST::LetDeclaration { name, value } = value {
-                    ast.push(AST::LetDeclaration {
-                        name: Some(lexer.slice().to_string()),
-                        value,
-                    });
+                    if name.is_none() {
+                        ast.push(AST::LetDeclaration {
+                            name: Some(lexer.slice().to_string()),
+                            value,
+                        });
+                    } else {
+                        let has_value = context.contains_key(&lexer.slice().to_string());
+                        let needs_value = value == Box::new(AST::Null);
+                        
+
+                        if needs_value {
+                            if has_value {
+                                ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(context.get(&lexer.slice().to_string()).unwrap().clone()),
+                                });
+                            } else {
+                                return Err(format!("Variable {} not found", lexer.slice()));
+                            }
+                        } else {
+                            return Err(format!("Unexpected identifier: {}", lexer.slice()));
+                        }
+                    }
                 } else {
                     if let AST::Call { name, mut args } = value {
                         args.push(AST::Identifer(lexer.slice().to_string()));
@@ -131,6 +153,10 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
 
             _ => {}
         }
+    }
+
+    if verbose {
+        println!("{:?}", ast);
     }
 
     if ast.len() == 1 {
