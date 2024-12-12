@@ -1,6 +1,7 @@
 use crate::ast::AST;
 
 use std::collections::HashMap;
+use crate::utils;
 
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     match expr {
@@ -70,6 +71,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
         }
 
         AST::LetDeclaration { name, value } => {
+            if utils::is_reserved(name.as_ref().unwrap_or(&"".to_string())) {
+                return Err(format!("{} is a reserved keyword", name.as_ref().unwrap()));
+            }
+
             if let Some(name) = name {
                 context.insert(name, *value);
             }

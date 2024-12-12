@@ -84,7 +84,7 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
             }
 
             Ok(Token::String) => {
-                let value = ast.pop().unwrap();
+                let value = ast.pop().unwrap_or(AST::Null);
 
                 if let AST::Call { name, args } = value {
                     ast.push(AST::Call {
@@ -104,7 +104,7 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
             }
 
             Ok(Token::Number) => {
-                let value = ast.pop().unwrap();
+                let value = ast.pop().unwrap_or(AST::Null);
 
                 if let AST::Call { name, args } = value {
                     ast.push(AST::Call {
@@ -124,7 +124,7 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
             }
 
             Ok(Token::Boolean) => {
-                let value = ast.pop().unwrap();
+                let value = ast.pop().unwrap_or(AST::Null);
 
                 if let AST::Call { name, args } = value {
                     ast.push(AST::Call {
@@ -139,6 +139,26 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
                         });
                     } else {
                         return Err("Expected a call or let declaration before a boolean".to_string());
+                    }
+                }
+            }
+
+            Ok(Token::Float) => {
+                let value = ast.pop().unwrap_or(AST::Null);
+
+                if let AST::Call { name, args } = value {
+                    ast.push(AST::Call {
+                        name,
+                        args: vec![AST::Float(lexer.slice().parse().unwrap())],
+                    });
+                } else {
+                    if let AST::LetDeclaration { name, value } = value {
+                        ast.push(AST::LetDeclaration {
+                            name,
+                            value: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                        });
+                    } else {
+                        return Err("Expected a call or let declaration before a float".to_string());
                     }
                 }
             }

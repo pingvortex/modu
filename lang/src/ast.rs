@@ -16,6 +16,8 @@ pub enum AST {
 
     Boolean(bool),
 
+    Float(f64),
+
     Null,
     
     LParen(Box<AST>),

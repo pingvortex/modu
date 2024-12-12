@@ -26,12 +26,15 @@ pub enum Token {
     #[regex("[0-9]+")]
     Number,
 
+    #[regex("[0-9]+\\.[0-9]+")]
+    Float,
+
     #[regex(r#""[^"]*""#)]
     String,
 
     #[regex("true|false")]
     Boolean,
-    
+
     #[token("(")]
     LParen,
 
@@ -73,10 +76,9 @@ mod tests {
     #[test]
     fn expr() {
         let lexer = Token::lexer("print(\"Hello, world!\")");
-        
+
         for token in lexer {
             println!("{:?}", token);
         }
-
     }
 }
