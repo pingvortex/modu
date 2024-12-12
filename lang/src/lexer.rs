@@ -62,6 +62,15 @@ mod tests {
     }
 
     #[test]
+    fn asing_boolean() {
+        let mut lexer = Token::lexer("let x = true");
+        assert_eq!(lexer.next(), Some(Ok(Token::Let)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Identifer)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Assign)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Boolean)));
+    }
+
+    #[test]
     fn expr() {
         let mut lexer = Token::lexer("print(\"Hello, world!\")");
         

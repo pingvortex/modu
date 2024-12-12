@@ -229,6 +229,17 @@ mod tests {
     }
 
     #[test]
+    fn let_boolean() {
+        let mut context = HashMap::new();
+        let result = parse_line("let x = true", &mut context);
+
+        assert_eq!(result, Ok(AST::LetDeclaration {
+            name: Some("x".to_string()),
+            value: Box::new(AST::Boolean(true)),
+        }));
+    }
+
+    #[test]
     fn print_str() {
         let mut context = HashMap::new();
         let result = parse_line("print(\"Hello, world!\")", &mut context);
@@ -247,6 +258,17 @@ mod tests {
         assert_eq!(result, Ok(AST::Call {
             name: "print".to_string(),
             args: vec![AST::Number(10)],
+        }));
+    }
+
+    #[test]
+    fn print_boolean() {
+        let mut context = HashMap::new();
+        let result = parse_line("print(true)", &mut context);
+
+        assert_eq!(result, Ok(AST::Call {
+            name: "print".to_string(),
+            args: vec![AST::Boolean(true)],
         }));
     }
 
