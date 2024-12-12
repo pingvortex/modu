@@ -16,6 +16,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
                             AST::Number(n) => {
                                 println!("{}", n);
                             }
+
+                            AST::Boolean(b) => {
+                                println!("{}", b);
+                            }
     
                             AST::Identifer(name) => {
                                 match context.get(&name) {
@@ -28,9 +32,13 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
                                             AST::Number(n) => {
                                                 println!("{}", n);
                                             }
+
+                                            AST::Boolean(b) => {
+                                                println!("{}", b);
+                                            }
     
                                             _ => {
-                                                println!("Unknown value: {:?}", value);
+                                                println!("{:?}", value);
                                             }
                                         }
                                     }

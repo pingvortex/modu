@@ -28,6 +28,9 @@ pub enum Token {
 
     #[regex(r#""[^"]*""#)]
     String,
+
+    #[regex("true|false")]
+    Boolean,
     
     #[token("(")]
     LParen,

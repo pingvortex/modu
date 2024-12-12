@@ -127,6 +127,26 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
                 }
             }
 
+            Ok(Token::Boolean) => {
+                let value = ast.pop().unwrap();
+
+                if let AST::Call { name, mut args } = value {
+                    ast.push(AST::Call {
+                        name,
+                        args: vec![AST::Boolean(lexer.slice() == "true")],
+                    });
+                } else {
+                    if let AST::LetDeclaration { name, mut value } = value {
+                        ast.push(AST::LetDeclaration {
+                            name,
+                            value: Box::new(AST::Boolean(lexer.slice() == "true")),
+                        });
+                    } else {
+                        return Err("Expected a call or let declaration before a boolean".to_string());
+                    }
+                }
+            }
+
             Ok(Token::RParen) => {
                 if let Some(AST::Call { name, args }) = ast.pop() {
                     ast.push(AST::Call {

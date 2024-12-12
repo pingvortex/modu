@@ -14,6 +14,8 @@ pub enum AST {
 
     String(String),
 
+    Boolean(bool),
+
     Null,
     
     LParen(Box<AST>),
