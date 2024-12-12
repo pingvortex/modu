@@ -78,7 +78,7 @@ fn main() {
                     println!("Traceback (most recent call last):");
                     println!("    File \"<stdin>\", line {}", current_line);
 
-                    let joined = history.join("\n");
+                    let joined = history.join("");
                     let bytes = joined.as_bytes();
 
                     PrettyPrinter::new()
