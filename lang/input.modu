@@ -1,0 +1,9 @@
+print("123")
+print("woah no way this works")
+# print("this shouldnt print")
+
+let x = "banana"
+let y = 12345
+
+print(x)
+print(y)
