@@ -11,7 +11,7 @@ pub enum LexingError {
 #[logos(extras = LexingError)]
 #[logos(skip r"[ \t\n\f]+")]
 pub enum Token {
-    #[token("#")]
+    #[regex("//[^\n]*|/\\*([^*]|\\*[^/])*\\*/")]
     Comment,
 
     #[token("let")]

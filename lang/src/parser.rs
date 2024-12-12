@@ -14,10 +14,6 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
 
     while let Some(token) = lexer.next() {
         match token {
-            Ok(Token::Comment) => {
-                break;
-            }
-
             Ok(Token::Let) => {
                 ast.push(AST::LetDeclaration {
                     name: None,
