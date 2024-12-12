@@ -89,8 +89,6 @@ fn main() {
                         .unwrap();
 
                     println!();
-
-                    ast::AST::Null
                 });
             }
         }

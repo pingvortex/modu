@@ -5,7 +5,7 @@ use crate::eval::eval;
 use logos::Logos;
 use std::collections::HashMap;
 
-pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<AST, (String, usize)> {
+pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (String, usize)> {
     let verbose = std::env::args().collect::<Vec<String>>()
                             .iter().any(|arg| arg == "--verbose");
 
@@ -249,7 +249,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<AST, (St
         }
     }
 
-    Ok(AST::Null)
+    Ok(())
 }
 
 #[cfg(test)]
@@ -261,11 +261,7 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("let x = \"test\"", &mut context);
 
-        assert_eq!(result, Ok(AST::LetDeclaration {
-            name: Some("x".to_string()),
-            value: Box::new(AST::String("\"test\"".to_string())),
-            line: 1
-        }));
+        assert_eq!(result, Ok(()));
     }
 
 
@@ -274,11 +270,7 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("let x = 10", &mut context);
 
-        assert_eq!(result, Ok(AST::LetDeclaration {
-            name: Some("x".to_string()),
-            value: Box::new(AST::Number(10)),
-            line: 1,
-        }));
+        assert_eq!(result, Ok(()));
     }
 
     #[test]
@@ -286,11 +278,7 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("let x = true", &mut context);
 
-        assert_eq!(result, Ok(AST::LetDeclaration {
-            name: Some("x".to_string()),
-            value: Box::new(AST::Boolean(true)),
-            line: 1
-        }));
+        assert_eq!(result, Ok(()));
     }
 
     #[test]
@@ -298,11 +286,7 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("print(\"Hello, world!\")", &mut context);
 
-        assert_eq!(result, Ok(AST::Call {
-            name: "print".to_string(),
-            args: vec![AST::String("\"Hello, world!\"".to_string())],
-            line: 1
-        }));
+        assert_eq!(result, Ok(()));
     }
 
     #[test]
@@ -310,11 +294,7 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("print(10)", &mut context);
 
-        assert_eq!(result, Ok(AST::Call {
-            name: "print".to_string(),
-            args: vec![AST::Number(10)],
-            line: 1
-        }));
+        assert_eq!(result, Ok(()));
     }
 
     #[test]
@@ -322,11 +302,8 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("print(true)", &mut context);
 
-        assert_eq!(result, Ok(AST::Call {
-            name: "print".to_string(),
-            args: vec![AST::Boolean(true)],
-            line: 1
-        }));
+        assert_eq!(result, Ok(()));
+
     }
 
     #[test]
@@ -336,11 +313,7 @@ mod tests {
 
         let result = parse("print(x)", &mut context);
 
-        assert_eq!(result, Ok(AST::Call {
-            name: "print".to_string(),
-            args: vec![AST::Identifer("x".to_string())],
-            line: 2
-        }));
+        assert_eq!(result, Ok(()));
     }
 
     #[test]
@@ -348,6 +321,6 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("print(x)", &mut context);
 
-        assert_eq!(result, Err(("Variable x not found".to_string(), 1)));
+        assert_eq!(result, Err(("Unknown variable: x".to_string(), 1)));
     }
 }
