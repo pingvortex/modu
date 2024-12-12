@@ -18,6 +18,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                 println!("{}", n);
                             }
 
+                            AST::Float(f) => {
+                                println!("{}", f);
+                            }
+
                             AST::Boolean(b) => {
                                 println!("{}", b);
                             }
@@ -32,6 +36,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
     
                                             AST::Number(n) => {
                                                 println!("{}", n);
+                                            }
+
+                                            AST::Float(f) => {
+                                                println!("{}", f);
                                             }
 
                                             AST::Boolean(b) => {
@@ -76,7 +84,24 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
 
             if let Some(name) = name {
-                context.insert(name, *value);
+                
+                match *value {
+                    AST::Identifer(i_name) => {
+                        match context.get(&i_name) {
+                            Some(value) => {
+                                context.insert(name, value.clone());
+                            }
+
+                            None => {
+                                return Err(format!("Unknown variable: {}", name));
+                            }
+                        }
+                    }
+
+                    _ => {
+                        context.insert(name, *value);
+                    }
+                }
             }
         }
 

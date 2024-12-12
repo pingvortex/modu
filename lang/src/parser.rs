@@ -43,20 +43,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 line,
                             });
                         } else {
-                            let has_value = context.contains_key(&lexer.slice().to_string());
                             let needs_value = value == Box::new(AST::Null);
                             
     
                             if needs_value {
-                                if has_value {
-                                    ast.push(AST::LetDeclaration {
-                                        name: name,
-                                        value: Box::new(context.get(&lexer.slice().to_string()).unwrap().clone()),
-                                        line,
-                                    });
-                                } else {
-                                    return Err((format!("Variable {} not found", lexer.slice()), current_line));
-                                }
+                                ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                    line,
+                                });
                             } else {
                                 return Err((format!("Unexpected identifier: {}", lexer.slice()), current_line));
                             }
