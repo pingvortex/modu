@@ -2,7 +2,7 @@ use crate::ast::AST;
 
 use std::collections::HashMap;
 
-pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
+pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     match expr {
         AST::Call { name, args } => {
             match name.as_str() {
@@ -44,7 +44,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
                                     }
     
                                     None => {
-                                        println!("Unknown variable: {}", name);
+                                        return Err(format!("Unknown variable: {}", name));
                                     }
                                 }
                             }
@@ -54,7 +54,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
                             }
                         }
                     } else {
-                        println!("Expected 1 argument");
+                        return Err("print() takes one argument".to_string());
                     }
                 }
 
@@ -64,7 +64,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
                 }
 
                 _ => {
-                    println!("Unknown function: {}", name);
+                    return Err(format!("Unknown function: {}", name));
                 }
             }
         }
@@ -76,7 +76,9 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) {
         }
 
         _ => {
-            println!("Unknown expression: {:?}", expr);
+            return Err("Unknown expression".to_string());
         }
     }
+
+    Ok(AST::Null)
 }

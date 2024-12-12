@@ -178,11 +178,18 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
     if ast.len() == 1 {
         match ast[0].clone() {
             AST::LetDeclaration { name, value } => {
-                eval(AST::LetDeclaration { name, value }, context);
+                let result = eval(AST::LetDeclaration { name, value }, context);
+                if result.is_err() {
+                    return result;
+                }
             }
 
             AST::Call { name, args } => {
-                eval(AST::Call { name, args }, context);
+                let result = eval(AST::Call { name, args }, context);
+
+                if result.is_err() {
+                    return result;
+                }
             }
 
             _ => {}
@@ -191,5 +198,76 @@ pub fn parse_line(input: &str, context: &mut HashMap<String, AST>) -> Result<AST
         Ok(ast.pop().unwrap())
     } else {
         Ok(AST::Null)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn let_str() {
+        let mut context = HashMap::new();
+        let result = parse_line("let x = \"test\"", &mut context);
+
+        assert_eq!(result, Ok(AST::LetDeclaration {
+            name: Some("x".to_string()),
+            value: Box::new(AST::String("\"test\"".to_string())),
+        }));
+    }
+
+
+    #[test]
+    fn let_number() {
+        let mut context = HashMap::new();
+        let result = parse_line("let x = 10", &mut context);
+
+        assert_eq!(result, Ok(AST::LetDeclaration {
+            name: Some("x".to_string()),
+            value: Box::new(AST::Number(10)),
+        }));
+    }
+
+    #[test]
+    fn print_str() {
+        let mut context = HashMap::new();
+        let result = parse_line("print(\"Hello, world!\")", &mut context);
+
+        assert_eq!(result, Ok(AST::Call {
+            name: "print".to_string(),
+            args: vec![AST::String("\"Hello, world!\"".to_string())],
+        }));
+    }
+
+    #[test]
+    fn print_number() {
+        let mut context = HashMap::new();
+        let result = parse_line("print(10)", &mut context);
+
+        assert_eq!(result, Ok(AST::Call {
+            name: "print".to_string(),
+            args: vec![AST::Number(10)],
+        }));
+    }
+
+    #[test]
+    fn print_var() {
+        let mut context = HashMap::new();
+        parse_line("let x = 10", &mut context);
+
+        let result = parse_line("print(x)", &mut context);
+
+        assert_eq!(result, Ok(AST::Call {
+            name: "print".to_string(),
+            args: vec![AST::Identifer("x".to_string())],
+        }));
+    }
+
+    #[test]
+    fn print_unknown_var() {
+        let mut context = HashMap::new();
+        let result = parse_line("print(x)", &mut context);
+
+        assert_eq!(result, Err("Unknown variable: x".to_string()));
     }
 }
