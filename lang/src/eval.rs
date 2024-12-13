@@ -73,7 +73,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 }
 
                 _ => {
-                    return Err(format!("Unknown function: {}", name));
+                    return Err(format!("Could not find function '{}'", name));
                 }
             }
         }
