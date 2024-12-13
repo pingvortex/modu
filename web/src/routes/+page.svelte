@@ -28,7 +28,7 @@ but fast and efficient like Rust.
 With streamlined error messages for easy debugging</pre>
         </div>
 
-        <div class="mx-auto mt-8 bg-ctp-mantle p-4 rounded-md">
+        <div class="mx-auto mb-4 mt-8 bg-ctp-mantle p-4 rounded-md">
             <pre class="text-lg whitespace-pre-wrap break-all">
 <span class="text-ctp-red">let</span> x = <span class="text-ctp-blue">10.5</span>;
 <span class="text-ctp-red">let</span> y = <span class="text-ctp-blue">x</span>;
