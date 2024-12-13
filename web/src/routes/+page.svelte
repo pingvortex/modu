@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { Github, ExternalLink } from "lucide-svelte";
+    import { Github, ExternalLink, Book, CircleHelp } from "lucide-svelte";
 
     let githubHovered = false;
+    let moreExamplesHovered = false;
+    let docsHovered = false;
 </script>
 
 <div class="flex w-full max-w-screen h-screen flex-col">
@@ -15,11 +17,11 @@
         >
             <Github size={32} class="my-auto" />
             <span class="ml-1 text-xl my-auto">GitHub</span>
-            <ExternalLink size={20} class={`my-auto ml-1 ${githubHovered ? "w-6" : "w-0"} transition-all duration-300 overflow-hidden`} />
+            <ExternalLink size={20} class={`my-auto  ${githubHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
         </a>
     </div>
 
-    <div class="flex flex-col px-2">
+    <div class="flex flex-col px-2 mx-auto">
         <div class="text-center mx-auto mt-8 bg-ctp-mantle p-4 rounded-md">
             <pre class="text-lg whitespace-pre-wrap">
 Modu is a simple and fast interpreted programming language. 
@@ -28,10 +30,32 @@ but fast and efficient like Rust.
 With streamlined error messages for easy debugging</pre>
         </div>
 
-        <div class="mx-auto mb-4 mt-8 bg-ctp-mantle p-4 rounded-md">
+        <div class="my-4 mx-auto space-x-4 flex">
+            <a 
+                href="/examples" class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
+                on:mouseenter={() => moreExamplesHovered = true}
+                on:mouseleave={() => moreExamplesHovered = false}
+            >
+                <CircleHelp size={20} class="my-auto" />
+                <span class="ml-1 my-auto">More Examples</span>
+                <ExternalLink size={20} class={`my-auto ${moreExamplesHovered ? "ml-1 w-6" : "w-0"} transition-all duration-300`} />
+            </a>
+
+            <a 
+                href="/docs" class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
+                on:mouseenter={() => docsHovered = true}
+                on:mouseleave={() => docsHovered = false}
+            >
+                <Book size={20} class="my-auto" />
+                <span class="ml-1 my-auto">Docs</span>
+                <ExternalLink size={20} class={`my-auto ${docsHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
+            </a>
+        </div>
+
+        <div class="mx-auto mb-2 bg-ctp-mantle p-4 rounded-md">
             <pre class="text-lg whitespace-pre-wrap break-all">
-<span class="text-ctp-red">let</span> x = <span class="text-ctp-blue">10.5</span>;
-<span class="text-ctp-red">let</span> y = <span class="text-ctp-blue">x</span>;
+<span class="text-ctp-red">let</span> x = <span class="text-ctp-peach">10.5</span>;
+<span class="text-ctp-red">let</span> y = x;
 <span class="text-ctp-pink">print</span>(x);
 <span class="text-ctp-pink">print</span>(y);
 <span class="text-ctp-pink">print</span>(z);
