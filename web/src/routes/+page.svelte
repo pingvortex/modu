@@ -68,7 +68,7 @@ With streamlined error messages for easy debugging</pre>
 10.5
 10.5
                 
-⚠️ Variable x not found
+⚠️ Variable z not found
 Traceback (most recent call last):
     File "file.modu", line 6
 ─────┬──────────────────────────────────────────────────────
