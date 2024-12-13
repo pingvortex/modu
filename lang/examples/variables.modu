@@ -1,0 +1,16 @@
+let a = "Hello, World!";
+let b = 1.5;
+let c = true;
+let d = c;
+
+print(a);
+print(b);
+print(c);
+print(d);
+
+// Expected Output:
+//
+// Hello, World!
+// 1.5
+// true
+// true

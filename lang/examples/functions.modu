@@ -3,3 +3,7 @@ fn yap(str) {
 }
 
 yap("Hello, World!");
+
+// Expected Output:
+//
+// Hello, World!

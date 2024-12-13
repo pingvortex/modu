@@ -4,3 +4,9 @@ let y = x;
 print(x);
 print(y);
 print(z);
+
+// Expected Output:
+//
+// 10.5
+// 10.5
+// <error msg>
