@@ -54,42 +54,59 @@ fn main() {
             
             let mut current_line = 0;
             let mut history: Vec<String> = Vec::new();
+            let mut open_function = false;
+            let mut input = String::new();
 
             loop {
                 current_line += 1;
 
-                let mut input = String::new();
+                if open_function {
+                    print!("|   ");
+                } else {
+                    input.clear();
 
-                print!("> ");
+                    print!("> ");
+                }
+
                 std::io::stdout().flush().unwrap();
 
                 std::io::stdin().read_line(&mut input).unwrap();
 
                 history.push(input.clone());
 
-                parser::parse(&input, context).unwrap_or_else(|e| {
-                    println!("\n⚠️  {}", e.0);
-                    println!("Traceback (most recent call last):");
-                    println!("    File \"<stdin>\", line {}", current_line);
+                if input.contains("{") {
+                    open_function = true;
+                }
 
-                    let joined = history.join("");
-                    let bytes = joined.as_bytes();
+                if input.contains("}") {
+                    open_function = false;
+                }
 
-                    PrettyPrinter::new()
-                        .language("rust")
-                        .header(true)
-                        .line_numbers(true)
-                        .highlight(current_line)
-                        .grid(true)
-                        .input_from_bytes(bytes)
-                        .line_ranges(
-                            LineRanges::from(vec![LineRange::from(&format!("{}:{}", current_line - 1, current_line + 1)).unwrap()])
-                        )
-                        .print()
-                        .unwrap();
-
-                    println!();
-                });
+                if !open_function {
+                    parser::parse(&input, context).unwrap_or_else(|e| {
+                        println!("\n⚠️  {}", e.0);
+                        println!("Traceback (most recent call last):");
+                        println!("    File \"<stdin>\", line {}", current_line);
+    
+                        let joined = history.join("");
+                        let bytes = joined.as_bytes();
+    
+                        PrettyPrinter::new()
+                            .language("rust")
+                            .header(true)
+                            .line_numbers(true)
+                            .highlight(current_line)
+                            .grid(true)
+                            .input_from_bytes(bytes)
+                            .line_ranges(
+                                LineRanges::from(vec![LineRange::from(&format!("{}:{}", current_line - 1, current_line + 1)).unwrap()])
+                            )
+                            .print()
+                            .unwrap();
+    
+                        println!();
+                    });
+                }
             }
         }
 
