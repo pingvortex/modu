@@ -1,0 +1,3 @@
+import "import_file.modu" as pkg
+
+pkg.yap("Hello, World!");

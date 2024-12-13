@@ -1,4 +1,6 @@
 
+use std::collections::HashMap;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum AST {
     Comment,
@@ -9,7 +11,31 @@ pub enum AST {
         line: usize,
     },
 
+    Import {
+        file: Option<String>,
+        as_: Option<String>,
+        line: usize,
+    },
+
     Identifer(String),
+
+    Object {
+        properties: HashMap<String, AST>,
+        line: usize,
+    },
+
+    PropertyAccess {
+        object: Option<String>,
+        property: Option<String>,
+        line: usize,
+    },
+
+    PropertyCall {
+        object: Option<String>,
+        property: Option<String>,
+        args: Vec<AST>,
+        line: usize,
+    },
 
     Number(i64),
 

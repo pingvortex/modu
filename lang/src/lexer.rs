@@ -20,11 +20,21 @@ pub enum Token {
     #[token("fn")]
     Fn,
 
+    #[token("import")]
+    Import,
+
+    #[token("as")]
+    As,
+
     #[token(",")]
     Comma,
 
     #[token(";")]
     Semicolon,
+
+
+    #[token(".")]
+    Dot,
 
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifer,

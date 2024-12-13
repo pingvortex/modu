@@ -28,6 +28,36 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
         while let Some(token) = lexer.next() {
             match token {
+                Ok(Token::Import) => {
+                    temp_ast.push(AST::Import {
+                        file: None,
+                        as_: None,
+                        line: current_line,
+                    });
+                }
+
+                Ok(Token::As) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Import { file, line, .. } => {
+                            if file.is_none() {
+                                return Err(("Expected a file before 'as'".to_string(), current_line));
+                            }
+
+                            temp_ast.push(AST::Import {
+                                file,
+                                as_: Some(lexer.slice().to_string()),
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err(("Expected an import before 'as'".to_string(), current_line));
+                        }
+                    }
+                }
+
                 Ok(Token::Let) => {
                     temp_ast.push(AST::LetDeclaration {
                         name: None,
@@ -44,10 +74,73 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         line: current_line,
                     });
                 }
+
+                Ok(Token::Dot) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Identifer(name) => {
+                            temp_ast.push(AST::PropertyAccess {
+                                object: Some(name),
+                                property: None,
+                                line: current_line,
+                            });
+                        }
+
+                        AST::Function { name, args, body, line } => {
+                            temp_ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+
+                        AST::Call { name, mut args, line } => {
+                            if args.is_empty() {
+                                return Err(("Expected a property before '.' in function call".to_string(), current_line));
+                            } else {
+                                let arg = args.pop().unwrap();
+
+                                match arg {
+                                    AST::Identifer(name) => {
+                                        args.push(AST::PropertyAccess {
+                                            object: Some(name),
+                                            property: None,
+                                            line,
+                                        });
+                                    }
+
+                                    _ => {
+                                        return Err(("Expected an identifier before '.'".to_string(), current_line));
+                                    }
+                                }
+
+                                temp_ast.push(AST::Call {
+                                    name,
+                                    args,
+                                    line,
+                                });
+                            }
+                        }
+
+                        _ => {
+                            return Err(("Expected an identifier before '.'".to_string(), current_line));
+                        }
+                    }
+                }
     
                 Ok(Token::Identifer) => {
                     let value = temp_ast.pop().unwrap_or(AST::Null);
                     match value {
+                        AST::Import { file, as_, line } => {
+                            temp_ast.push(AST::Import {
+                                file,
+                                as_: Some(lexer.slice().to_string()),
+                                line,
+                            });
+                        }
+
                         AST::LetDeclaration { name, value, line } => {
                             if name.is_none() {
                                 temp_ast.push(AST::LetDeclaration {
@@ -65,13 +158,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::Call { name, mut args, line } => {
-                            args.push(AST::Identifer(lexer.slice().to_string()));
+                            match args.pop().unwrap_or(AST::Null) {
+                                AST::PropertyAccess { object, property, line } => {
+                                    args.push(AST::PropertyAccess {
+                                        object,
+                                        property: Some(lexer.slice().to_string()),
+                                        line,
+                                    });
 
-                            temp_ast.push(AST::Call {
-                                name,
-                                args,
-                                line,
-                            });
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    args.push(AST::Identifer(lexer.slice().to_string()));
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                    
+                                }
+                            }
                         }
 
                         AST::Function { name, mut args, body, line } => {
@@ -92,6 +204,14 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     line,
                                 });
                             }
+                        }
+
+                        AST::PropertyAccess { object, property, line } => {
+                            temp_ast.push(AST::PropertyAccess {
+                                object,
+                                property: Some(lexer.slice().to_string()),
+                                line,
+                            });
                         }
 
                         _ => {
@@ -131,6 +251,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::PropertyAccess { object, property, line } => {
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
+                                args: Vec::new(),
+                                line,
+                            });
+                        }
+
                         _ => {
                             return Err(("Expected an identifier before '()'".to_string(), current_line));
                         }
@@ -141,11 +270,34 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = temp_ast.pop().unwrap_or(AST::Null);
     
                     match value {
+                        AST::Import { file, as_, line } => {
+                            if file.is_none() {
+                                temp_ast.push(AST::Import {
+                                    file: Some(lexer.slice().to_string()),
+                                    as_,
+                                    line,
+                                });
+                            } else {
+                                return Err(("Expected a import state before the file path".to_string(), current_line));
+                            }
+                        }
+
                         AST::Call { name, mut args, line } => {
                             args.push(AST::String(lexer.slice().to_string()));
 
                             temp_ast.push(AST::Call {
                                 name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::PropertyCall { object, property, mut args, line } => {
+                            args.push(AST::String(lexer.slice().to_string()));
+
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
                                 args,
                                 line,
                             });
@@ -179,6 +331,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::PropertyCall { object, property, args, line } => {
+                            let mut args = args.clone();
+
+                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
+                                args,
+                                line,
+                            });
+                        }
+
                         AST::LetDeclaration { name, value, line } => {
                             temp_ast.push(AST::LetDeclaration {
                                 name,
@@ -202,6 +367,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                             temp_ast.push(AST::Call {
                                 name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::PropertyCall { object, property, args, line } => {
+                            let mut args = args.clone();
+
+                            args.push(AST::Boolean(lexer.slice() == "true"));
+
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
                                 args,
                                 line,
                             });
@@ -254,6 +432,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         AST::Call { name, args, line } => {
                             temp_ast.push(AST::Call {
                                 name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::PropertyCall { object, property, args, line } => {
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
                                 args,
                                 line,
                             });
@@ -372,6 +559,14 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
     for item in ast.clone() {
         match item {
+            AST::Import { file, as_, line } => {
+                let result = eval(AST::Import { file, as_, line }, context);
+
+                if result.is_err() {
+                    return Err((result.err().unwrap(), line));
+                }
+            }
+
             AST::LetDeclaration { name, value, line } => {
                 let result = eval(AST::LetDeclaration { name, value, line }, context);
 
@@ -382,6 +577,14 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
             AST::Call { name, args, line } => {
                 let result = eval(AST::Call { name, args, line }, context);
+
+                if result.is_err() {
+                    return Err((result.err().unwrap(), line));
+                }
+            }
+
+            AST::PropertyCall { object, property, args, line } => {
+                let result = eval(AST::PropertyCall { object, property, args, line }, context);
 
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
