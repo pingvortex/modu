@@ -15,7 +15,7 @@
         >
             <Github size={32} class="my-auto" />
             <span class="ml-1 text-xl my-auto">GitHub</span>
-            <ExternalLink size={24} class={`my-auto ml-1 ${githubHovered ? "w-6" : "w-0"} transition-all duration-300 overflow-hidden`} />
+            <ExternalLink size={20} class={`my-auto ml-1 ${githubHovered ? "w-6" : "w-0"} transition-all duration-300 overflow-hidden`} />
         </a>
     </div>
 
