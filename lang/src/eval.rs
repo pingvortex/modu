@@ -53,7 +53,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                     }
     
                                     None => {
-                                        return Err(format!("Unknown variable: {}", name));
+                                        return Err(format!("Variable {} not found", name));
                                     }
                                 }
                             }
@@ -93,7 +93,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                             }
 
                             None => {
-                                return Err(format!("Unknown variable: {}", name));
+                                return Err(format!("Variable {} not found", i_name));
                             }
                         }
                     }

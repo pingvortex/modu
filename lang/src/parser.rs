@@ -340,6 +340,6 @@ mod tests {
         let mut context = HashMap::new();
         let result = parse("print(x)", &mut context);
 
-        assert_eq!(result, Err(("Unknown variable: x".to_string(), 1)));
+        assert_eq!(result, Err(("Variable x not found".to_string(), 1)));
     }
 }
