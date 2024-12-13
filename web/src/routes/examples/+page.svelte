@@ -7,7 +7,7 @@
     <div class="mx-auto">
         <h1 class="mt-4 w-full font-bold text-7xl">Examples</h1>
 
-        <a href={base} class="mx-auto mt-5 bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex">
+        <a href={base + "/"} class="mx-auto mt-5 bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex">
             <Home size={20} class="my-auto" />
             <span class="ml-1 my-auto">Return Home</span>
         </a>
@@ -46,6 +46,28 @@ true</pre>
 }`}
 
 <span class="text-ctp-pink">yap</span>(<span class="text-ctp-green">"Hello, World!"</span>);
+
+<span class="text-ctp-subtext0">// Output</span>
+
+Hello, World!</pre>
+            </div>
+        </div> 
+        <div class="w-full p-4">
+            <div class="bg-ctp-mantle h-full p-4 rounded-md">
+                <h2>Imports</h2>
+                <pre class="text-lg whitespace-pre-wrap">
+
+<span class="text-ctp-subtext0">// yapper.modu</span>
+
+<span class="text-ctp-red">fn</span> {@html `yap(str) {
+    <span class="text-ctp-pink">print</span>(str);
+}`}
+
+<span class="text-ctp-subtext0">// main.modu</span>
+
+<span class="text-ctp-red">import</span> <span class="text-ctp-green">"yapper.modu"</span> as <span class="text-ctp-red">yapper</span>;
+
+<span class="text-ctp-pink">yapper</span>.yap(<span class="text-ctp-green">"Hello, World!"</span>);
 
 <span class="text-ctp-subtext0">// Output</span>
 
