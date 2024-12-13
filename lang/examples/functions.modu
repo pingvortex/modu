@@ -1,0 +1,6 @@
+fn yap(str) {
+    let msg = str; // vars work in functions
+    print(msg);
+}
+
+yap("Hello, World!");

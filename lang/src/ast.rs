@@ -21,15 +21,26 @@ pub enum AST {
 
     Null,
     
-    LParen(Box<AST>),
+    LParen,
 
-    RParen(Box<AST>),
+    RParen,
 
-    Semiclon,
+    LBracket,
+
+    RBracket,
+
+    Semicolon,
 
     Call {
         name: String,
         args: Vec<AST>,
+        line: usize,
+    },
+
+    Function {
+        name: String,
+        args: Vec<String>,
+        body: Vec<AST>,
         line: usize,
     },
 }

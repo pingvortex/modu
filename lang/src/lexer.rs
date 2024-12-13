@@ -17,6 +17,12 @@ pub enum Token {
     #[token("let")]
     Let,
 
+    #[token("fn")]
+    Fn,
+
+    #[token(",")]
+    Comma,
+
     #[token(";")]
     Semicolon,
 
@@ -43,6 +49,12 @@ pub enum Token {
 
     #[token(")")]
     RParen,
+
+    #[token("{")]
+    LBracket,
+
+    #[token("}")]
+    RBracket,
 }
 
 #[cfg(test)]

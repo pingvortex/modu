@@ -73,7 +73,35 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 }
 
                 _ => {
-                    return Err(format!("Could not find function '{}'", name));
+                    match context.get(&name) {
+                        Some(value) => {
+                            match value {
+                                AST::Function { name: _, args: f_args, body, line: _ } => {
+                                    if args.len() == f_args.len() {
+                                        let mut new_context = context.clone();
+
+                                        for (i, arg) in f_args.iter().enumerate() {
+                                            new_context.insert(arg.clone(), args[i].clone());
+                                        }
+
+                                        for expr in body {
+                                            eval(expr.clone(), &mut new_context)?;
+                                        }
+                                    } else {
+                                        return Err(format!("{} takes {} arguments", name, f_args.len()));
+                                    }
+                                }
+
+                                _ => {
+                                    return Err(format!("{} is not a function", name));
+                                }
+                            }
+                        }
+
+                        None => {
+                            return Err(format!("Function {} not found", name));
+                        }
+                    }
                 }
             }
         }
@@ -105,8 +133,16 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
+        AST::Function { name, args, body, line: _ } => {
+            context.insert(name.clone(), AST::Function { name, args, body, line: 0 });
+        }
+
+        AST::Semicolon => {
+            return Ok(AST::Null);
+        }
+
         _ => {
-            return Err("Unknown expression".to_string());
+            return Err(format!("Unknown expression, got {:?}", expr));
         }
     }
 

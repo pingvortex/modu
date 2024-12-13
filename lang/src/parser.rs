@@ -12,6 +12,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     let mut ast = Vec::new();
     let mut line_map = HashMap::new();
     let mut current_line = 0;
+    let mut function = false;
 
     for line in input.split("\n") {
         current_line += 1;
@@ -22,58 +23,86 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             dbg!(lexer.clone().spanned().collect::<Vec<_>>());
         }
 
+        let mut temp_ast = Vec::new();
+        let mut function_starts = false;
+
         while let Some(token) = lexer.next() {
             match token {
                 Ok(Token::Let) => {
-                    ast.push(AST::LetDeclaration {
+                    temp_ast.push(AST::LetDeclaration {
                         name: None,
                         value: Box::new(AST::Null),
                         line: current_line,
                     });
                 }
+
+                Ok(Token::Fn) => {
+                    temp_ast.push(AST::Function {
+                        name: String::new(),
+                        args: Vec::new(),
+                        body: Vec::new(),
+                        line: current_line,
+                    });
+                }
     
                 Ok(Token::Identifer) => {
-                    let value = ast.pop().unwrap_or(AST::Null);
-    
-                    if let AST::LetDeclaration { name, value, line } = value {
-                        if name.is_none() {
-                            ast.push(AST::LetDeclaration {
-                                name: Some(lexer.slice().to_string()),
-                                value,
-                                line,
-                            });
-                        } else {
-                            let needs_value = value == Box::new(AST::Null);
-                            
-    
-                            if needs_value {
-                                ast.push(AST::LetDeclaration {
-                                    name: name,
-                                    value: Box::new(AST::Identifer(lexer.slice().to_string())),
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+                    match value {
+                        AST::LetDeclaration { name, value, line } => {
+                            if name.is_none() {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: Some(lexer.slice().to_string()),
+                                    value,
                                     line,
                                 });
                             } else {
-                                return Err((format!("Unexpected identifier: {}", lexer.slice()), current_line));
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                    line,
+                                });
                             }
                         }
-                    } else {
-                        if let AST::Call { name, mut args, line } = value {
+
+                        AST::Call { name, mut args, line } => {
                             args.push(AST::Identifer(lexer.slice().to_string()));
 
-                            ast.push(AST::Call {
+                            temp_ast.push(AST::Call {
                                 name,
                                 args,
                                 line,
                             });
-                        } else {
-                            ast.push(AST::Identifer(lexer.slice().to_string()));
+                        }
+
+                        AST::Function { name, mut args, body, line } => {
+                            if name.is_empty() {
+                                temp_ast.push(AST::Function {
+                                    name: lexer.slice().to_string(),
+                                    args,
+                                    body,
+                                    line,
+                                });
+                            } else {
+                                args.push(lexer.slice().to_string());
+
+                                temp_ast.push(AST::Function {
+                                    name,
+                                    args,
+                                    body,
+                                    line,
+                                });
+                            }
+                        }
+
+                        _ => {
+                            temp_ast.push(AST::Identifer(lexer.slice().to_string()));
                         }
                     }
                 }
     
                 Ok(Token::Assign) => {
-                    if let Some(AST::LetDeclaration { name, value, line }) = ast.pop() {                    
-                        ast.push(AST::LetDeclaration {
+                    if let Some(AST::LetDeclaration { name, value, line }) = temp_ast.pop() {                    
+                        temp_ast.push(AST::LetDeclaration {
                             name,
                             value: Box::new(AST::Null),
                             line,
@@ -84,119 +113,212 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 }
     
                 Ok(Token::LParen) => {
-                    if let Some(AST::Identifer(name)) = ast.pop() {
-                        ast.push(AST::Call {
-                            name,
-                            args: Vec::new(),
-                            line: current_line,
-                        });
-                    } else {
-                        return Err(("Expected an identifier before '(...)'".to_string(), current_line));
+                    match temp_ast.pop().unwrap_or(AST::Null) {
+                        AST::Identifer(name) => {
+                            temp_ast.push(AST::Call {
+                                name,
+                                args: Vec::new(),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::Function { name, args, body, line } => {
+                            temp_ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err(("Expected an identifier before '()'".to_string(), current_line));
+                        }
                     }
                 }
     
                 Ok(Token::String) => {
-                    let value = ast.pop().unwrap_or(AST::Null);
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
     
-                    if let AST::Call { name, args, line } = value {
-                        ast.push(AST::Call {
-                            name,
-                            args: vec![AST::String(lexer.slice().to_string())],
-                            line,
-                        });
-                    } else {
-                        if let AST::LetDeclaration { name, value, line } = value {
-                            ast.push(AST::LetDeclaration {
+                    match value {
+                        AST::Call { name, mut args, line } => {
+                            args.push(AST::String(lexer.slice().to_string()));
+
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
                                 name,
                                 value: Box::new(AST::String(lexer.slice().to_string())),
-                                line
+                                line,
                             });
-                        } else {
+                        }
+
+                        _ => {
                             return Err(("Expected a call or let declaration before a string".to_string(), current_line));
                         }
                     }
                 }
     
                 Ok(Token::Number) => {
-                    let value = ast.pop().unwrap_or(AST::Null);
-    
-                    if let AST::Call { name, args, line } = value {
-                        ast.push(AST::Call {
-                            name,
-                            args: vec![AST::Number(lexer.slice().parse().unwrap())],
-                            line
-                        });
-                    } else {
-                        if let AST::LetDeclaration { name, value, line } = value {
-                            ast.push(AST::LetDeclaration {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Call { name, mut args, line } => {
+                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
                                 name,
                                 value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
                                 line,
                             });
-                        } else {
+                        }
+
+                        _ => {
                             return Err(("Expected a call or let declaration before a number".to_string(), current_line));
                         }
                     }
                 }
     
                 Ok(Token::Boolean) => {
-                    let value = ast.pop().unwrap_or(AST::Null);
-    
-                    if let AST::Call { name, args, line } = value {
-                        ast.push(AST::Call {
-                            name,
-                            args: vec![AST::Boolean(lexer.slice() == "true")],
-                            line
-                        });
-                    } else {
-                        if let AST::LetDeclaration { name, value, line } = value {
-                            ast.push(AST::LetDeclaration {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Call { name, mut args, line } => {
+                            args.push(AST::Boolean(lexer.slice() == "true"));
+
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
                                 name,
                                 value: Box::new(AST::Boolean(lexer.slice() == "true")),
-                                line
+                                line,
                             });
-                        } else {
+                        }
+
+                        _ => {
                             return Err(("Expected a call or let declaration before a boolean".to_string(), current_line));
                         }
                     }
                 }
     
                 Ok(Token::Float) => {
-                    let value = ast.pop().unwrap_or(AST::Null);
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
     
-                    if let AST::Call { name, args, line } = value {
-                        ast.push(AST::Call {
-                            name,
-                            args: vec![AST::Float(lexer.slice().parse().unwrap())],
-                            line
-                        });
-                    } else {
-                        if let AST::LetDeclaration { name, value, line } = value {
-                            ast.push(AST::LetDeclaration {
+                    match value {
+                        AST::Call { name, mut args, line } => {
+                            args.push(AST::Float(lexer.slice().parse().unwrap()));
+    
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
                                 name,
                                 value: Box::new(AST::Float(lexer.slice().parse().unwrap())),
                                 line,
                             });
-                        } else {
+                        }
+
+                        _ => {
                             return Err(("Expected a call or let declaration before a float".to_string(), current_line));
                         }
                     }
                 }
     
                 Ok(Token::RParen) => {
-                    if let Some(AST::Call { name, args, line }) = ast.pop() {
-                        ast.push(AST::Call {
-                            name,
-                            args,
-                            line,
-                        });
-                    } else {
-                        return Err(("Expected a call before ')'".to_string(), current_line));
+                    match temp_ast.pop().unwrap_or(AST::Null) {
+                        AST::Call { name, args, line } => {
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::Function { name, args, body, line } => {
+                            temp_ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err(("Expected a call or function before ')'".to_string(), current_line));
+                        }
                     }
                 }
     
                 Ok(Token::Semicolon) => {
-                    ast.push(AST::Semiclon);
+                    temp_ast.push(AST::Semicolon);
+                }
+
+                Ok(Token::LBracket) => {
+                    match temp_ast.pop().unwrap_or(AST::Null) {
+                        AST::Function { name, args, body, line } => {
+                            temp_ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+
+                            function = true;
+                            function_starts = true;
+                        }
+
+                        _ => {
+                            return Err(("Expected a function before '{'".to_string(), current_line));
+                        }
+                    }
+                }
+
+                Ok(Token::RBracket) => {
+                    match temp_ast.pop().unwrap_or(AST::Null) {
+                        AST::Function { name, args, body, line } => {
+                            temp_ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+
+                            function = false;
+                        }
+
+                        _ => {
+                            if function {
+                                function = false;
+                            } else {
+                                return Err(("Expected a function before '}'".to_string(), current_line));
+                            }
+                        }
+                    }
                 }
     
                 Err(_) => {
@@ -221,6 +343,31 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         if verbose {
             println!("{:?}", ast);
         }
+
+        if function && !function_starts {
+            let function = ast.pop().unwrap_or(AST::Null);
+
+            match function {
+                AST::Function { name, args, mut body, line } => {
+                    for expr in temp_ast {
+                        body.push(expr);
+                    }
+
+                    ast.push(AST::Function {
+                        name,
+                        args,
+                        body,
+                        line,
+                    });
+                }
+
+                _ => {
+                    return Err(("Expected a function".to_string(), current_line));
+                }
+            }
+        } else {
+            ast.append(&mut temp_ast);
+        }
     }
 
     for item in ast.clone() {
@@ -240,6 +387,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     return Err((result.err().unwrap(), line));
                 }
             }
+
+            AST::Function { name, args, body, line } => {
+                let result = eval(AST::Function { name, args, body, line }, context);
+
+                if result.is_err() {
+                    return Err((result.err().unwrap(), line));
+                }
+            }
+
             _ => {}
         }
     }
