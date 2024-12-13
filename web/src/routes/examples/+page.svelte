@@ -1,12 +1,13 @@
 <script>
     import { Home } from 'lucide-svelte';
+    import { base } from '$app/paths';
 </script>
 
 <div class="flex flex-col w-full">
     <div class="mx-auto">
         <h1 class="mt-4 w-full font-bold text-7xl">Examples</h1>
 
-        <a href="/" class="mx-auto mt-5 bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex">
+        <a href={base} class="mx-auto mt-5 bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex">
             <Home size={20} class="my-auto" />
             <span class="ml-1 my-auto">Return Home</span>
         </a>

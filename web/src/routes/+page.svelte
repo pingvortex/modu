@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Github, ExternalLink, Book, CircleHelp } from "lucide-svelte";
+    import { base } from "$app/paths";
 
     let githubHovered = false;
     let moreExamplesHovered = false;
@@ -32,7 +33,8 @@ With streamlined error messages for easy debugging</pre>
 
         <div class="my-4 mx-auto space-x-4 flex">
             <a 
-                href="/examples" class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
+                href={base + "/examples"}
+                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
                 on:mouseenter={() => moreExamplesHovered = true}
                 on:mouseleave={() => moreExamplesHovered = false}
             >
@@ -42,7 +44,8 @@ With streamlined error messages for easy debugging</pre>
             </a>
 
             <a 
-                href="/docs" class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
+                href={base + "/docs"}
+                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
                 on:mouseenter={() => docsHovered = true}
                 on:mouseleave={() => docsHovered = false}
             >
