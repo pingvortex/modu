@@ -1,0 +1,3 @@
+import "yapper.modu" as yapper
+
+yapper.yap("Hello, World!");
