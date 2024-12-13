@@ -1,6 +1,22 @@
+<script lang="ts">
+    import { Github, ExternalLink } from "lucide-svelte";
+
+    let githubHovered = false;
+</script>
+
 <div class="flex w-full max-w-screen h-screen flex-col">
     <div class="h-fit bg-ctp-mantle text-center pt-6 pb-8 border-b border-b-ctp-surface0">
-        <h1 class="text-ctp-yellow text-8xl font-bold [text-shadow:_0_0_10px_#f9e2af]">Modu</h1>
+        <h1 class="text-ctp-yellow text-8xl font-bold [text-shadow:_0_0_10px_#f9e2af] mb-4">Modu</h1>
+        <a 
+            class="flex w-fit mx-auto bg-white p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
+            href="https://github.com/cyteon/modu" target="_blank" 
+            on:mouseenter={() => githubHovered = true} 
+            on:mouseleave={() => githubHovered = false}
+        >
+            <Github size={32} class="my-auto" />
+            <span class="ml-1 text-xl my-auto">GitHub</span>
+            <ExternalLink size={24} class={`my-auto ml-1 ${githubHovered ? "w-6" : "w-0"} transition-all duration-300 overflow-hidden`} />
+        </a>
     </div>
 
     <div class="flex flex-col px-2">
