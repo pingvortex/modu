@@ -67,7 +67,7 @@ Hello, World!</pre>
 
 <span class="text-ctp-red">import</span> <span class="text-ctp-green">"yapper.modu"</span> as <span class="text-ctp-red">yapper</span>;
 
-<span class="text-ctp-pink">yapper</span>.yap(<span class="text-ctp-green">"Hello, World!"</span>);
+yapper.<span class="text-ctp-pink">yap</span>(<span class="text-ctp-green">"Hello, World!"</span>);
 
 <span class="text-ctp-subtext0">// Output</span>
 
