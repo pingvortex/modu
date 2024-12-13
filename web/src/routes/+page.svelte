@@ -41,7 +41,7 @@ With streamlined error messages for easy debugging</pre>
 10.5
 10.5
                 
-⚠️ Unknown variable: z
+⚠️ Variable x not found
 Traceback (most recent call last):
     File "file.modu", line 6
 ─────┬──────────────────────────────────────────────────────
