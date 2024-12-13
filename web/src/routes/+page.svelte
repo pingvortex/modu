@@ -5,7 +5,7 @@
 </script>
 
 <div class="flex w-full max-w-screen h-screen flex-col">
-    <div class="h-fit bg-ctp-mantle text-center pt-6 pb-8 border-b border-b-ctp-surface0">
+    <div class="h-fit bg-ctp-mantle text-center pt-2 pb-6 border-b border-b-ctp-surface0">
         <h1 class="text-ctp-yellow text-8xl font-bold [text-shadow:_0_0_10px_#f9e2af] mb-4">Modu</h1>
         <a 
             class="flex w-fit mx-auto bg-white p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
