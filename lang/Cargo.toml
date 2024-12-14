@@ -1,11 +1,13 @@
 [package]
 name = "modu"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
-repository = "https://github.com/cytepon/modu"
+repository = "https://github.com/cyteon/modu"
+homepage = "https://cyteon.tech/modu"
 description = "A fast and simple interpreted language"
 license = "MIT"
 authors = ["Cyteon"]
+keywords = ["programming-language", "cli", "interprter", "language"]
 
 [dependencies]
 bat = "0.24.0"
