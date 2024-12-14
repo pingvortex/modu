@@ -290,6 +290,87 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
+        AST::IsEqual { left, right, line } => {
+            match (eval(*left, context)?, eval(*right, context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Boolean(l == r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Boolean(l == r));
+                }
+
+                (AST::String(l), AST::String(r)) => {
+                    return Ok(AST::Boolean(l == r));
+                }
+
+                (AST::Boolean(l), AST::Boolean(r)) => {
+                    return Ok(AST::Boolean(l == r));
+                }
+
+                _ => {
+                    return Ok(AST::Boolean(false));
+                }
+            }
+        }
+
+        AST::IsUnequal { left, right, line } => {
+            match (eval(*left, context)?, eval(*right, context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Boolean(l != r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Boolean(l != r));
+                }
+
+                (AST::String(l), AST::String(r)) => {
+                    return Ok(AST::Boolean(l != r));
+                }
+
+                (AST::Boolean(l), AST::Boolean(r)) => {
+                    return Ok(AST::Boolean(l != r));
+                }
+
+                _ => {
+                    return Ok(AST::Boolean(true));
+                }
+            }
+        }
+
+        AST::IfStatement { condition, body, line } => {
+            match eval(*condition, context)? {
+                AST::Boolean(b) => {
+                    if b {
+                        for expr in body {
+                            eval(expr, context)?;
+                        }
+                    }
+                }
+
+                _ => {
+                    return Err("If statement condition must return a boolean".to_string());
+                }
+            }
+        }
+
+        AST::String(_) | AST::Number(_) | AST::Boolean(_) | AST::Float(_) | AST::Object { .. } | AST::Null => {
+            return Ok(expr);
+        }
+        
+
+        AST::Identifer(name) => {
+            match context.get(&name) {
+                Some(value) => {
+                    return Ok(value.clone());
+                }
+
+                None => {
+                    return Ok(AST::Null);
+                }
+            }
+        }
+
         _ => {
             return Err(format!("Unknown expression, got {:?}", expr));
         }

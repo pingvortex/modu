@@ -32,6 +32,8 @@ pub enum Token {
     #[token(";")]
     Semicolon,
 
+    #[token("if")]
+    If,
 
     #[token(".")]
     Dot,
@@ -65,6 +67,12 @@ pub enum Token {
 
     #[token("}")]
     RBracket,
+
+    #[token("==")]
+    IsEqual,
+
+    #[token("!=")]
+    IsUnequal,
 }
 
 #[cfg(test)]

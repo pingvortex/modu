@@ -1,6 +1,6 @@
 pub fn is_reserved(name: &str) -> bool {
     match name {
-        "let" | "print" | "exit" => true,
+        "let" | "fn" | "import" | "if" => true,
         _ => false,
     }
 }

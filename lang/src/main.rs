@@ -6,7 +6,7 @@ mod utils;
 
 use std::io::Write;
 
-use bat::{Input, PrettyPrinter};
+use bat::PrettyPrinter;
 use bat::line_range::{LineRanges, LineRange};
 
 fn main() {

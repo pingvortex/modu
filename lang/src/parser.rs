@@ -12,7 +12,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     let mut ast = Vec::new();
     let mut line_map = HashMap::new();
     let mut current_line = 0;
-    let mut function = false;
+    let mut in_body = false;
 
     for line in input.split("\n") {
         current_line += 1;
@@ -24,7 +24,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         }
 
         let mut temp_ast = Vec::new();
-        let mut function_starts = false;
+        let mut body_starts = false;
 
         while let Some(token) = lexer.next() {
             match token {
@@ -73,6 +73,86 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         body: Vec::new(),
                         line: current_line,
                     });
+                }
+
+                Ok(Token::If) => {
+                    temp_ast.push(AST::IfStatement {
+                        condition: Box::new(AST::Null),
+                        body: Vec::new(),
+                        line: current_line,
+                    });
+                }
+
+                Ok(Token::IsEqual) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Null => {
+                            return Err(("Expected an value before '=='".to_string(), current_line));
+                        }
+
+                        _ => {
+                            match temp_ast.pop().unwrap_or(AST::Null) {
+                                AST::Null => {
+                                    return Err(("Expected an value before '=='".to_string(), current_line));
+                                }
+
+                                AST::IfStatement { mut condition, body, line } => {
+                                    condition = Box::new(AST::IsEqual {
+                                        left: Box::new(value),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::IfStatement {
+                                        condition,
+                                        body,
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    return Err(("Expected an if statement before '=='".to_string(), current_line));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Ok(Token::IsUnequal) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Null => {
+                            return Err(("Expected an value before '!='".to_string(), current_line));
+                        }
+
+                        _ => {
+                            match temp_ast.pop().unwrap_or(AST::Null) {
+                                AST::Null => {
+                                    return Err(("Expected an value before '!='".to_string(), current_line));
+                                }
+
+                                AST::IfStatement { mut condition, body, line } => {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left: Box::new(value),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::IfStatement {
+                                        condition,
+                                        body,
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    return Err(("Expected an if statement before '!='".to_string(), current_line));
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Ok(Token::Dot) => {
@@ -214,6 +294,48 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::IfStatement { condition, body, line } => {
+                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
+                                if let AST::Null = **right {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition: Box::new(AST::IsEqual {
+                                            left: left.clone(),
+                                            right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                            line: *line,
+                                        }),
+                                        body,
+                                        line: *line,
+                                    });
+                                } else {
+                                    return Err(("Expected a value before '=='".to_string(), current_line));
+                                }
+                            } else {
+                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
+                                    if let AST::Null = **right {
+                                        temp_ast.push(AST::IfStatement {
+                                            condition: Box::new(AST::IsUnequal {
+                                                left: left.clone(),
+                                                right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                                line: *line,
+                                            }),
+                                            body,
+                                            line: *line,
+                                        });
+                                    } else {
+                                        return Err(("Expected a value before '!='".to_string(), current_line));
+                                    }
+                                } else {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition,
+                                        body,
+                                        line,
+                                    });
+        
+                                    temp_ast.push(AST::Identifer(lexer.slice().to_string()));
+                                }
+                            }
+                        }
+
                         _ => {
                             temp_ast.push(AST::Identifer(lexer.slice().to_string()));
                         }
@@ -311,6 +433,48 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::IfStatement { condition, body, line } => {
+                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
+                                if let AST::Null = **right {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition: Box::new(AST::IsEqual {
+                                            left: left.clone(),
+                                            right: Box::new(AST::String(lexer.slice().to_string())),
+                                            line: *line,
+                                        }),
+                                        body,
+                                        line: *line,
+                                    });
+                                } else {
+                                    return Err(("Expected a value before '=='".to_string(), current_line));
+                                }
+                            } else {
+                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
+                                    if let AST::Null = **right {
+                                        temp_ast.push(AST::IfStatement {
+                                            condition: Box::new(AST::IsUnequal {
+                                                left: left.clone(),
+                                                right: Box::new(AST::String(lexer.slice().to_string())),
+                                                line: *line,
+                                            }),
+                                            body,
+                                            line: *line,
+                                        });
+                                    } else {
+                                        return Err(("Expected a value before '!='".to_string(), current_line));
+                                    }
+                                } else {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition,
+                                        body,
+                                        line,
+                                    });
+        
+                                    temp_ast.push(AST::String(lexer.slice().to_string()));
+                                }
+                            }
+                        }
+
                         _ => {
                             return Err(("Expected a call or let declaration before a string".to_string(), current_line));
                         }
@@ -350,6 +514,48 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
                                 line,
                             });
+                        }
+
+                        AST::IfStatement { condition, body, line } => {
+                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
+                                if let AST::Null = **right {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition: Box::new(AST::IsEqual {
+                                            left: left.clone(),
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line: *line,
+                                        }),
+                                        body,
+                                        line: *line,
+                                    });
+                                } else {
+                                    return Err(("Expected a value before '=='".to_string(), current_line));
+                                }
+                            } else {
+                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
+                                    if let AST::Null = **right {
+                                        temp_ast.push(AST::IfStatement {
+                                            condition: Box::new(AST::IsUnequal {
+                                                left: left.clone(),
+                                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                line: *line,
+                                            }),
+                                            body,
+                                            line: *line,
+                                        });
+                                    } else {
+                                        return Err(("Expected a value before '!='".to_string(), current_line));
+                                    }
+                                } else {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition,
+                                        body,
+                                        line,
+                                    });
+        
+                                    temp_ast.push(AST::Number(lexer.slice().parse().unwrap()));
+                                }
+                            }
                         }
 
                         _ => {
@@ -393,6 +599,48 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::IfStatement { condition, body, line } => {
+                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
+                                if let AST::Null = **right {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition: Box::new(AST::IsEqual {
+                                            left: left.clone(),
+                                            right: Box::new(AST::Boolean(lexer.slice() == "true")),
+                                            line: *line,
+                                        }),
+                                        body,
+                                        line: *line,
+                                    });
+                                } else {
+                                    return Err(("Expected a value before '=='".to_string(), current_line));
+                                }
+                            } else {
+                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
+                                    if let AST::Null = **right {
+                                        temp_ast.push(AST::IfStatement {
+                                            condition: Box::new(AST::IsUnequal {
+                                                left: left.clone(),
+                                                right: Box::new(AST::Boolean(lexer.slice() == "true")),
+                                                line: *line,
+                                            }),
+                                            body,
+                                            line: *line,
+                                        });
+                                    } else {
+                                        return Err(("Expected a value before '!='".to_string(), current_line));
+                                    }
+                                } else {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition,
+                                        body,
+                                        line,
+                                    });
+        
+                                    temp_ast.push(AST::Boolean(lexer.slice() == "true"));
+                                }
+                            }
+                        }
+
                         _ => {
                             return Err(("Expected a call or let declaration before a boolean".to_string(), current_line));
                         }
@@ -413,12 +661,35 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::PropertyCall { object, property, args, line } => {
+                            let mut args = args.clone();
+    
+                            args.push(AST::Float(lexer.slice().parse().unwrap()));
+    
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
+                                args,
+                                line,
+                            });
+                        }
+
                         AST::LetDeclaration { name, value, line } => {
                             temp_ast.push(AST::LetDeclaration {
                                 name,
                                 value: Box::new(AST::Float(lexer.slice().parse().unwrap())),
                                 line,
                             });
+                        }
+
+                        AST::IfStatement { condition, body, line } => {
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+
+                            temp_ast.push(AST::Float(lexer.slice().parse().unwrap()));
                         }
 
                         _ => {
@@ -475,8 +746,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 line,
                             });
 
-                            function = true;
-                            function_starts = true;
+                            in_body = true;
+                            body_starts = true;
+                        }
+
+                        AST::IfStatement { condition, body, line } => {
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+
+                            in_body = true;
+                            body_starts = true;
                         }
 
                         _ => {
@@ -495,12 +777,22 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 line,
                             });
 
-                            function = false;
+                            in_body = false;
+                        }
+
+                        AST::IfStatement { condition, body, line } => {
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+
+                            in_body = false;
                         }
 
                         _ => {
-                            if function {
-                                function = false;
+                            if in_body {
+                                in_body = false;
                             } else {
                                 return Err(("Expected a function before '}'".to_string(), current_line));
                             }
@@ -531,7 +823,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             println!("{:?}", ast);
         }
 
-        if function && !function_starts {
+        if in_body && !body_starts {
             let function = ast.pop().unwrap_or(AST::Null);
 
             match function {
@@ -543,6 +835,18 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     ast.push(AST::Function {
                         name,
                         args,
+                        body,
+                        line,
+                    });
+                }
+
+                AST::IfStatement { condition, mut body, line } => {
+                    for expr in temp_ast {
+                        body.push(expr);
+                    }
+
+                    ast.push(AST::IfStatement {
+                        condition,
                         body,
                         line,
                     });
@@ -599,7 +903,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 }
             }
 
-            _ => {}
+            AST::IfStatement { condition, body, line } => {
+                let result = eval(AST::IfStatement { condition, body, line }, context);
+
+                if result.is_err() {
+                    return Err((result.err().unwrap(), line));
+                }
+            }
+
+            _ => {
+                if verbose {
+                    println!("I'm not sure what to do with {:?}", item);
+                }
+            }
         }
     }
 
