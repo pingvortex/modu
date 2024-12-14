@@ -1,0 +1,15 @@
+let a = 5;
+let b = -5;
+let c = a + b;
+
+print(a);
+print(b);
+print(c);
+print(a + b + c + 1);
+
+// Expected Output
+//
+// 5
+// -5
+// 0
+// 1
