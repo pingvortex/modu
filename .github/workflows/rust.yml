@@ -15,6 +15,7 @@ jobs:
     steps:
     - name: Run tests
       run: |
+        ls
         cd lang
         cargo test --verbose
   
@@ -32,7 +33,7 @@ jobs:
         cargo build --release --verbose --target x86_64-pc-windows-gnu
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: binaries
         path: |
