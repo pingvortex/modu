@@ -1,6 +1,6 @@
 use crate::ast::AST;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 use crate::utils;
 
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
@@ -196,7 +196,13 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
         AST::Import { file, as_, line } => {
             let args = std::env::args().collect::<Vec<String>>();
 
-            let path = std::path::Path::new(&args[2]).parent().unwrap().join(file.unwrap().replace("\"", ""));
+            let path: PathBuf;
+
+            if args.len() > 2 {
+                path = std::path::Path::new(&args[2]).parent().unwrap().join(file.unwrap().replace("\"", ""));
+            } else {
+                path = file.unwrap().replace("\"", "").into();
+            }
 
             match std::fs::read_to_string(&path) {
                 Ok(file) => {
