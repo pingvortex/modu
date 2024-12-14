@@ -23,8 +23,6 @@ pub enum AST {
         line: usize,
     },
 
-    Identifer(String),
-
     Object {
         properties: HashMap<String, AST>,
         line: usize,
@@ -68,6 +66,20 @@ pub enum AST {
         line: usize,
     },
 
+    Addition {
+        left: Box<AST>,
+        right: Box<AST>,
+        line: usize,
+    },
+
+    Subtraction {
+        left: Box<AST>,
+        right: Box<AST>,
+        line: usize,
+    },
+
+    Identifer(String),
+
     Number(i64),
 
     String(String),
@@ -77,6 +89,8 @@ pub enum AST {
     Float(f64),
 
     Null,
+
+    /*
     
     LParen,
 
@@ -85,6 +99,8 @@ pub enum AST {
     LBracket,
 
     RBracket,
+
+    */
 
     Semicolon,
 }

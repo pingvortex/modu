@@ -229,11 +229,39 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     line,
                                 });
                             } else {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Identifer(lexer.slice().to_string())),
-                                    line,
-                                });
+                                if AST::Null == *value {
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                } else {
+                                    if let AST::Addition { left, right, line } = *value {
+                                        temp_ast.push(AST::LetDeclaration {
+                                            name,
+                                            value: Box::new(AST::Addition {
+                                                left,
+                                                right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                                line,
+                                            }),
+                                            line,
+                                        });
+                                    } else {
+                                        if let AST::Subtraction { left, right, line } = *value {
+                                            temp_ast.push(AST::LetDeclaration {
+                                                name,
+                                                value: Box::new(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                                    line,
+                                                }),
+                                                line,
+                                            });
+                                        } else {
+                                            return Err((format!("Unexpected identifier '{}'", lexer.slice()), current_line));
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -243,6 +271,34 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     args.push(AST::PropertyAccess {
                                         object,
                                         property: Some(lexer.slice().to_string()),
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                AST::Addition { left, right, line } => {
+                                    args.push(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                AST::Subtraction { left, right, line } => {
+                                    args.push(AST::Subtraction {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
                                         line,
                                     });
 
@@ -405,7 +461,29 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::Call { name, mut args, line } => {
-                            args.push(AST::String(lexer.slice().to_string()));
+                            let arg = args.pop().unwrap_or(AST::Null);
+
+                            match arg {
+                                AST::Addition { left, right, line } => {
+                                    args.push(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::String(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                AST::Subtraction { left, right, line } => {
+                                    args.push(AST::Subtraction {
+                                        left,
+                                        right: Box::new(AST::String(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    args.push(AST::String(lexer.slice().to_string()));
+                                }
+                            }
 
                             temp_ast.push(AST::Call {
                                 name,
@@ -426,11 +504,23 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            temp_ast.push(AST::LetDeclaration {
-                                name,
-                                value: Box::new(AST::String(lexer.slice().to_string())),
-                                line,
-                            });
+                            if let AST::Addition { left, right, line } = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::String(lexer.slice().to_string())),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::String(lexer.slice().to_string())),
+                                    line,
+                                });
+                            }
                         }
 
                         AST::IfStatement { condition, body, line } => {
@@ -480,13 +570,151 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
                     }
                 }
-    
+
+                Ok(Token::Plus) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Number(n) => {
+                            temp_ast.push(AST::Addition {
+                                left: Box::new(AST::Number(n)),
+                                right: Box::new(AST::Null),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::Float(f) => {
+                            temp_ast.push(AST::Addition {
+                                left: Box::new(AST::Float(f)),
+                                right: Box::new(AST::Null),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::String(s) => {
+                            temp_ast.push(AST::Addition {
+                                left: Box::new(AST::String(s)),
+                                right: Box::new(AST::Null),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
+                                name,
+                                value: Box::new(AST::Addition {
+                                    left: value,
+                                    right: Box::new(AST::Null),
+                                    line,
+                                }),
+                                line,
+                            });
+                        }
+                        
+                        AST::Call { name, mut args, line } => {
+                            let arg = args.pop().unwrap_or(AST::Null);
+
+                            args.push(AST::Addition {
+                                left: Box::new(arg),
+                                right: Box::new(AST::Null),
+                                line,
+                            });
+
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err((format!("Expected a number, float, string, or let declaration before '+', got {:?}", value), current_line));
+                        }
+                    }
+                }    
+
+                Ok(Token::Minus) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Number(n) => {
+                            temp_ast.push(AST::Subtraction {
+                                left: Box::new(AST::Number(n)),
+                                right: Box::new(AST::Null),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::Float(f) => {
+                            temp_ast.push(AST::Subtraction {
+                                left: Box::new(AST::Float(f)),
+                                right: Box::new(AST::Null),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
+                                name,
+                                value: Box::new(AST::Subtraction {
+                                    left: value,
+                                    right: Box::new(AST::Null),
+                                    line,
+                                }),
+                                line,
+                            });
+                        }
+
+                        AST::Call { name, mut args, line } => {
+                            let arg = args.pop().unwrap_or(AST::Null);
+
+                            args.push(AST::Subtraction {
+                                left: Box::new(arg),
+                                right: Box::new(AST::Null),
+                                line,
+                            });
+
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err((format!("Expected a number, float, or let declaration before '-', got {:?}", value), current_line));
+                        }
+                    }
+                }
+
                 Ok(Token::Number) => {
                     let value = temp_ast.pop().unwrap_or(AST::Null);
 
                     match value {
                         AST::Call { name, mut args, line } => {
-                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+                            let arg = args.pop().unwrap_or(AST::Null);
+
+                            match arg {
+                                AST::Addition { left, right, line } => {
+                                    args.push(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                        line,
+                                    });
+                                }
+
+                                AST::Subtraction { left, right, line } => {
+                                    args.push(AST::Subtraction {
+                                        left,
+                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                }
+                            }
 
                             temp_ast.push(AST::Call {
                                 name,
@@ -509,9 +737,53 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            temp_ast.push(AST::LetDeclaration {
-                                name,
-                                value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                            if let AST::Addition { left, right, line } = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                if let AST::Subtraction { left, right, line } = *value {
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::Subtraction {
+                                            left,
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line,
+                                        }),
+                                        line,
+                                    });
+                                } else {
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                        line,
+                                    });
+                                }
+                            }
+                        }
+
+                        AST::Addition { left, right, line } => {
+                            if let AST::Null = *right {
+                                temp_ast.push(AST::Addition {
+                                    left,
+                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Expected a value before '+'".to_string(), current_line));
+                            }
+                        }
+
+                        AST::Subtraction { left, right, line } => {
+                            temp_ast.push(AST::Subtraction {
+                                left,
+                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
                                 line,
                             });
                         }
@@ -652,8 +924,30 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     
                     match value {
                         AST::Call { name, mut args, line } => {
-                            args.push(AST::Float(lexer.slice().parse().unwrap()));
-    
+                            let arg = args.pop().unwrap_or(AST::Null);
+
+                            match arg {
+                                AST::Addition { left, right, line } => {
+                                    args.push(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                        line,
+                                    });
+                                }
+
+                                AST::Subtraction { left, right, line } => {
+                                    args.push(AST::Subtraction {
+                                        left,
+                                        right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                }
+                            }
+
                             temp_ast.push(AST::Call {
                                 name,
                                 args,
@@ -675,11 +969,23 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            temp_ast.push(AST::LetDeclaration {
-                                name,
-                                value: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                line,
-                            });
+                            if let AST::Addition { left, right, line } = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                    line,
+                                });
+                            }
                         }
 
                         AST::IfStatement { condition, body, line } => {

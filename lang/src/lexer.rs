@@ -38,6 +38,12 @@ pub enum Token {
     #[token(".")]
     Dot,
 
+    #[token("+")]
+    Plus,
+
+    #[token("-")]
+    Minus,
+
     #[regex("[a-zA-Z_][a-zA-Z0-9_]*")]
     Identifer,
 

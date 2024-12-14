@@ -9,7 +9,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             match name.as_str() {
                 "print" => {
                     if args.len() == 1 {
-                        match args[0].clone() {
+                        match eval(args[0].clone(), context)? {
                             AST::String(s) => {
                                 println!("{}", s.replace("\"", ""));
                             }
@@ -133,7 +133,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         let mut new_context = context.clone();
 
                                         for (i, arg) in f_args.iter().enumerate() {
-                                            new_context.insert(arg.clone(), args[i].clone());
+                                            new_context.insert(arg.clone(), eval(args[i].clone(), &mut new_context.clone())?);
                                         }
 
                                         for expr in body {
@@ -179,7 +179,8 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                     }
 
                     _ => {
-                        context.insert(name, *value);
+                        let val = eval(*value, context)?;
+                        context.insert(name, val);
                     }
                 }
             }
@@ -354,8 +355,80 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::String(_) | AST::Number(_) | AST::Boolean(_) | AST::Float(_) | AST::Object { .. } | AST::Null => {
+        AST::Number(_) | AST::Boolean(_) | AST::Float(_) | AST::Object { .. } | AST::Null => {
             return Ok(expr);
+        }
+
+        AST::String(value) => {
+            return Ok(AST::String(value.replace("\"", "")));
+        }
+
+        AST::Addition { left, right, line } => {
+            match (eval(*left.clone(), context)?, eval(*right.clone(), context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Number(l + r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Float(l + r));
+                }
+
+                (AST::Number(l), AST::Float(r)) => {
+                    return Ok(AST::Float(l as f64 + r));
+                }
+
+                (AST::Float(l), AST::Number(r)) => {
+                    return Ok(AST::Float(l + r as f64));
+                }
+
+                (AST::String(l), AST::String(r)) => {
+                    return Ok(AST::String(format!("{}{}", l, r)));
+                }
+
+                _ => {
+                    return Err(format!("Cannot add {:?} and {:?}", eval(*left, context)?, eval(*right, context)?));
+                }
+            }
+        }
+
+        AST::Subtraction { left, right, line } => {
+            match (eval(*left.clone(), context)?, eval(*right.clone(), context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Number(l - r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Float(l - r));
+                }
+
+                (AST::Number(l), AST::Float(r)) => {
+                    return Ok(AST::Float(l as f64 - r));
+                }
+
+                (AST::Float(l), AST::Number(r)) => {
+                    return Ok(AST::Float(l - r as f64));
+                }
+
+                (AST::Null, AST::Number(r)) => {
+                    return Ok(AST::Number(-r));
+                }
+
+                (AST::Null, AST::Float(r)) => {
+                    return Ok(AST::Float(-r));
+                }
+
+                (AST::Number(l), AST::Null) => {
+                    return Ok(AST::Number(l));
+                }
+
+                (AST::Float(l), AST::Null) => {
+                    return Ok(AST::Float(l));
+                }
+
+                _ => {
+                    return Err(format!("Cannot subtract {:?} and {:?}", eval(*left, context)?, eval(*right, context)?));
+                }
+            }
         }
         
 
