@@ -10,25 +10,29 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: |
-        cd lang
-        cargo build --release --verbose
-    
     - name: Run tests
       run: |
         cd lang
         cargo test --verbose
-      
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
+  
+  build:
+    runs-on: ubuntu-latest
+    - name: Build for Linux
+      run: |
+        cd lang
+        cargo build --release --verbose
+    
+    - name: Build for Windows
+      run: |
+        cd lang
+        cargo build --release --verbose --target x86_64-pc-windows-gnu
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
       with:
-        name: modu
-        path: lang/target/release/modu
-        if-no-files-found: error
+        name: binaries
+        path: |
+          lang/target/x86_64-pc-windows-gnu/release/modu.exe
+          lang/target/release/modu
