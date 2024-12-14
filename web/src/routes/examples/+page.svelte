@@ -74,6 +74,29 @@ yapper.<span class="text-ctp-pink">yap</span>(<span class="text-ctp-green">"Hell
 Hello, World!</pre>
             </div>
         </div> 
+        
+        <div class="w-full p-4">
+            <div class="bg-ctp-mantle h-full p-4 rounded-md">
+                <h2>If Statements</h2>
+                <pre class="text-lg whitespace-pre-wrap">
+<span class="text-ctp-red">let</span> a = <span class="text-ctp-peach">1</span>;
+<span class="text-ctp-red">let</span> b = <span class="text-ctp-peach">2</span>;
+
+<span class="text-ctp-red">if</span> a == b {@html `{
+    <span class="text-ctp-pink">print</span>(<span class="text-ctp-green">"a is equal to b"</span>);
+}
+`}
+
+<span class="text-ctp-red">if</span> a != b {@html `{
+    <span class="text-ctp-pink">print</span>(<span class="text-ctp-green">"a is not equal to b"</span>);
+}
+`}
+
+<span class="text-ctp-subtext0">// Output</span>
+
+a is not equal to b</pre>
+            </div>
+        </div>  
     </div>
 </div>
 

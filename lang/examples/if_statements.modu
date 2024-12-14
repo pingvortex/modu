@@ -1,0 +1,36 @@
+let a = 1
+let b = 2
+let c = a
+let d = "potato"
+
+if a == 1 {
+    print("a == 1");
+}
+
+if a == b {
+    print("oh nyo");
+}
+
+if a != b {
+    print("a != b");
+}
+
+if a == c {
+    print("a == c");
+}
+
+if a != d {
+    print("a != d")
+}
+
+if d == "potato" {
+    print("d == 'potato'");
+}
+
+// Expected Output:
+//
+// a == 1
+// a != b
+// a == c
+// a != d
+// d == 'potato'

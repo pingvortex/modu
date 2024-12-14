@@ -2,6 +2,8 @@
 name = "modu"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/cytepon/modu"
+authors = ["Cyteon"]
 
 [dependencies]
 bat = "0.24.0"
