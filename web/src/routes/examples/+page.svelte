@@ -97,6 +97,28 @@ Hello, World!</pre>
 a is not equal to b</pre>
             </div>
         </div>  
+
+        <div class="w-full p-4">
+            <div class="bg-ctp-mantle h-full p-4 rounded-md">
+                <h2>Addition and Subtraction</h2>
+                <pre class="text-lg whitespace-pre-wrap">
+<span class="text-ctp-red">let</span> a = <span class="text-ctp-peach">5</span>;
+<span class="text-ctp-red">let</span> b = <span class="text-ctp-peach">-5</span>;
+<span class="text-ctp-red">let</span> c = a + b;
+
+<span class="text-ctp-pink">print</span>(a);
+<span class="text-ctp-pink">print</span>(b);
+<span class="text-ctp-pink">print</span>(c);
+<span class="text-ctp-pink">print</span>(a + b + c + 1);
+
+<span class="text-ctp-subtext0">// Output</span>
+
+5
+-5
+0
+1</pre>
+            </div>
+        </div> 
     </div>
 </div>
 
