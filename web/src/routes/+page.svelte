@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { Github, ExternalLink, Book, CircleHelp } from "lucide-svelte";
+    import { Github, ExternalLink, Book, CircleHelp, Box } from "lucide-svelte";
     import { base } from "$app/paths";
 
     let githubHovered = false;
+    let cratesIoHovered = false;
     let moreExamplesHovered = false;
     let docsHovered = false;
 </script>
@@ -10,8 +11,10 @@
 <div class="flex w-full max-w-screen h-screen flex-col">
     <div class="h-fit bg-ctp-mantle text-center pt-2 pb-6 border-b border-b-ctp-surface0">
         <h1 class="text-ctp-yellow text-8xl font-bold [text-shadow:_0_0_10px_#f9e2af] mb-4">Modu</h1>
-        <a 
-            class="flex w-fit mx-auto bg-white p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
+        
+        <div class="flex space-x-2 justify-center">
+            <a 
+            class="flex w-fit bg-white p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
             href="https://github.com/cyteon/modu" target="_blank" 
             on:mouseenter={() => githubHovered = true} 
             on:mouseleave={() => githubHovered = false}
@@ -20,6 +23,18 @@
             <span class="ml-1 text-xl my-auto">GitHub</span>
             <ExternalLink size={20} class={`my-auto  ${githubHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
         </a>
+
+        <a 
+            class="flex w-fit bg-ctp-peach p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
+            href="https://crates.io/crates/modu" target="_blank" 
+            on:mouseenter={() => cratesIoHovered = true} 
+            on:mouseleave={() => cratesIoHovered = false}
+        >
+            <Box size={32} class="my-auto" />
+            <span class="ml-1 text-xl my-auto">Crates.io</span>
+            <ExternalLink size={20} class={`my-auto  ${cratesIoHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
+        </a>
+        </div>
     </div>
 
     <div class="flex flex-col px-2 mx-auto">
