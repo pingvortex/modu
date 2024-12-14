@@ -3,6 +3,8 @@ name = "modu"
 version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/cytepon/modu"
+description = "A fast and simple interpreted language"
+license = "MIT"
 authors = ["Cyteon"]
 
 [dependencies]
