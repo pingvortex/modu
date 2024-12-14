@@ -20,6 +20,7 @@ jobs:
       run: |
         cd lang
         cargo build --release --verbose
+    
     - name: Run tests
       run: |
         cd lang
@@ -28,6 +29,6 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: build-artifact
-        path: |
-          lang/target/release/modu
+        name: modu
+        path: lang/target/release/modu
+        if-no-files-found: error
