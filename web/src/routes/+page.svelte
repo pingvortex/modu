@@ -14,24 +14,24 @@
         
         <div class="flex space-x-2 justify-center">
             <a 
-            class="flex w-fit bg-white p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
+            class="flex w-fit bg-white p-2 rounded-md text-ctp-mantle font-mono transition-all duration-300" 
             href="https://github.com/cyteon/modu" target="_blank" 
             on:mouseenter={() => githubHovered = true} 
             on:mouseleave={() => githubHovered = false}
         >
-            <Github size={32} class="my-auto" />
-            <span class="ml-1 text-xl my-auto">GitHub</span>
+            <Github size={24} class="my-auto" />
+            <span class="ml-1 text-xl mt-0.5">GitHub</span>
             <ExternalLink size={20} class={`my-auto  ${githubHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
         </a>
 
         <a 
-            class="flex w-fit bg-ctp-peach p-2 rounded-md text-ctp-mantle font-semibold transition-all duration-300" 
+            class="flex w-fit bg-ctp-peach p-2 rounded-md text-ctp-mantle font-mono transition-all duration-300" 
             href="https://crates.io/crates/modu" target="_blank" 
             on:mouseenter={() => cratesIoHovered = true} 
             on:mouseleave={() => cratesIoHovered = false}
         >
-            <Box size={32} class="my-auto" />
-            <span class="ml-1 text-xl my-auto">Crates.io</span>
+            <Box size={24} class="my-auto" />
+            <span class="ml-1 text-xl mt-0.5">Crates.io</span>
             <ExternalLink size={20} class={`my-auto  ${cratesIoHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
         </a>
         </div>
@@ -49,23 +49,23 @@ With streamlined error messages for easy debugging</pre>
         <div class="my-4 mx-auto space-x-4 flex">
             <a 
                 href={base + "/examples"}
-                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
+                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center font-mono w-fit flex"
                 on:mouseenter={() => moreExamplesHovered = true}
                 on:mouseleave={() => moreExamplesHovered = false}
             >
                 <CircleHelp size={20} class="my-auto" />
-                <span class="ml-1 my-auto">More Examples</span>
+                <span class="ml-1 text-xl mt-0.5">More Examples</span>
                 <ExternalLink size={20} class={`my-auto ${moreExamplesHovered ? "ml-1 w-6" : "w-0"} transition-all duration-300`} />
             </a>
 
             <a 
                 href={base + "/docs"}
-                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md text-center w-fit flex"
+                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-fit flex"
                 on:mouseenter={() => docsHovered = true}
                 on:mouseleave={() => docsHovered = false}
             >
                 <Book size={20} class="my-auto" />
-                <span class="ml-1 my-auto">Docs</span>
+                <span class="ml-1 mt-0.5">Docs</span>
                 <ExternalLink size={20} class={`my-auto ${docsHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
         </div>
