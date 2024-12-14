@@ -16,7 +16,6 @@ jobs:
     - name: Run tests
       run: |
         ls
-        cd lang
         cargo test --verbose
   
   build:
