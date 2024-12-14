@@ -13,14 +13,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - name: Run tests
       run: |
-        ls
+        cd lang
         cargo test --verbose
   
   build:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
     - name: Build for Linux
       run: |
         cd lang
