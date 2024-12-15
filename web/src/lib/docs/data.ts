@@ -1,4 +1,4 @@
-import { Home, Baseline } from "lucide-svelte"
+import { Home, Baseline, File, Equal } from "lucide-svelte"
 
 export default {
     pages: [
@@ -11,6 +11,16 @@ export default {
             "path": "basics",
             "title": "Basics",
             "icon": Baseline,
+        },
+        {
+            "path": "imports",
+            "title": "Imports",
+            "icon": File,
+        },
+        {
+            "path": "math",
+            "title": "Math",
+            "icon": Equal,
         }
     ]
 }
