@@ -1,5 +1,5 @@
 # Modu
-<a href="https://crates.io/modu">
+<a href="https://crates.io/crates/modu">
   <img alt="Crates.io Version" src="https://img.shields.io/crates/v/modu?style=for-the-badge">
 </a>
 
