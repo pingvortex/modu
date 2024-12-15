@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/eba65243-9e7f-4720-979b-d47e16cb45cb)# Modu
+# Modu
 <a href="https://crates.io/crates/modu">
   <img alt="Crates.io Version" src="https://img.shields.io/crates/v/modu?style=for-the-badge">
 </a>
