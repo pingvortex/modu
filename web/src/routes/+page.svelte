@@ -59,7 +59,7 @@ With streamlined error messages for easy debugging</pre>
             </a>
 
             <a 
-                href={base + "/docs"}
+                href={base + "/docs/quickstart"}
                 class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-fit flex"
                 on:mouseenter={() => docsHovered = true}
                 on:mouseleave={() => docsHovered = false}
