@@ -46,7 +46,7 @@ but fast and efficient like Rust.
 With streamlined error messages for easy debugging</pre>
         </div>
 
-        <div class="my-4 mx-auto space-x-4 flex">
+        <div class="my-6 mx-auto space-x-4 flex">
             <a 
                 href={base + "/examples"}
                 class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center font-mono w-fit flex"
@@ -71,6 +71,7 @@ With streamlined error messages for easy debugging</pre>
         </div>
 
         <div class="mx-auto mb-2 bg-ctp-mantle p-4 rounded-md">
+            <h2 class="font-bold mb-1 text-2xl text-center">Error Example</h2>
             <pre class="text-lg whitespace-pre-wrap break-all">
 <span class="text-ctp-red">let</span> x = <span class="text-ctp-peach">10.5</span>;
 <span class="text-ctp-red">let</span> y = x;
