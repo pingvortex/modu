@@ -132,12 +132,12 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
 
             if let Some(name) = name {
-                
                 match *value {
                     AST::Identifer(i_name) => {
                         match context.get(&i_name) {
                             Some(value) => {
-                                context.insert(name, value.clone());
+                                let val = eval(value.clone(), context)?;
+                                context.insert(name, val);
                             }
 
                             None => {

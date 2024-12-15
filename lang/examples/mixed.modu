@@ -1,0 +1,26 @@
+let a = 1;
+let b = -2;
+let c = a - b;
+
+if a == b {
+    print("a is equal to b");
+}
+
+
+if a != b {
+    print("a is not equal to b");
+}
+
+fn example() {
+  print("Hello, World");
+}
+
+if c == 3 {
+  example()
+}
+
+
+// Output
+// 
+// a is not equal to b
+// Hello, World!
