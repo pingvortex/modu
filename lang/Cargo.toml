@@ -8,7 +8,7 @@ description = "A fast and simple interpreted language"
 documentation = "https://www.cyteon.tech/modu/docs/quickstart"
 license = "MIT"
 authors = ["Cyteon"]
-keywords = ["programming-language", "cli", "interprter", "language"]
+keywords = ["programming-language", "cli", "interpreter", "language"]
 
 [dependencies]
 bat = "0.24.0"
