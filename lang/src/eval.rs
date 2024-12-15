@@ -25,38 +25,6 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                             AST::Boolean(b) => {
                                 println!("{}", b);
                             }
-    
-                            AST::Identifer(name) => {
-                                match context.get(&name) {
-                                    Some(value) => {
-                                        match value {
-                                            AST::String(s) => {
-                                                println!("{}", s.replace("\"", ""));
-                                            }
-    
-                                            AST::Number(n) => {
-                                                println!("{}", n);
-                                            }
-
-                                            AST::Float(f) => {
-                                                println!("{}", f);
-                                            }
-
-                                            AST::Boolean(b) => {
-                                                println!("{}", b);
-                                            }
-    
-                                            _ => {
-                                                println!("{:?}", value);
-                                            }
-                                        }
-                                    }
-    
-                                    None => {
-                                        return Err(format!("Variable {} not found", name));
-                                    }
-                                }
-                            }
 
                             AST::PropertyAccess { object, property, line } => {
                                 match object {
@@ -111,7 +79,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                             }
     
                             _ => {
-                                println!("{:?}", args[0]);
+                                println!("{:?}", eval(args[0].clone(), context)?);
                             }
                         }
                     } else {
