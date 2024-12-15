@@ -8,7 +8,7 @@ $ cargo install modu
 ```
 
 More methods coming soon \
-You can also download them from the latest [action runs](https://github.com/Cyteon/modu/actions/workflows/rust.yml)
+You can also download binaries from the latest [action runs](https://github.com/Cyteon/modu/actions/workflows/rust.yml)
 
 ## Running
 
