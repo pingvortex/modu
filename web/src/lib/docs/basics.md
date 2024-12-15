@@ -4,13 +4,28 @@ Note: Semicolons are not required!
 
 ## Variables
 
+Variables can be defined, and redefined with 'let'. \
+Like this:
+
 ```rust
 let a = 1;
 let b = "a";
 let c = false;
 ```
 
+You can also define variables with other variables like
+
+```rust
+let a = 1;
+let b = a;
+```
+
+In addition, you can define variables with math, see [Math](math).
+
 ## Functions
+
+Functions are defined with the 'fn' keyword, then with arguments inside of parentheses. \
+There is currently no support for default values, and modu will return an error if you provide the wrong number of arguments.
 
 ```rust
 fn yap(msg) {
@@ -24,7 +39,12 @@ yap("Hello, World!");
 // Hello, World!
 ```
 
+Functions defined in a file, can be also be accessed in other files when imported, see [Imports](imports).
+
 ## Conditions
+
+Modu currently only supports == and != operators. \
+If the condition given returns true, the code inside of the brackets is ran.
 
 ```rust
 if 1 == 1 {
