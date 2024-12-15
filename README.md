@@ -12,4 +12,4 @@ With streamlined error messages for easy debugging
 Code examples: https://www.cyteon.tech/modu/examples \
 Documentation: https://www.cyteon.tech/modu/docs/quickstart
 
-![image](https://github.com/user-attachments/assets/f940124a-008d-4dcf-a337-6200d9f40abf)
+![image](https://github.com/user-attachments/assets/c7e4d037-f333-412b-a10f-26bef5f2adc3)
