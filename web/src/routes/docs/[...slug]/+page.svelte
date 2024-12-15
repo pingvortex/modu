@@ -50,7 +50,7 @@
     <div class={`h-screen bg-ctp-mantle p-2 border-r border-r-ctp-surface0 flex flex-col transition-all duration-300 ${sidebarOpen ? "w-52" : "w-16"}`}>
         <a href={base} class="flex text-xl font-bold transition-color duration-300 hover:bg-ctp-crust/80 p-2 rounded-md">
             <MoveLeft size={32} class="my-auto text-lg bg-ctp-base p-1 border border-ctp-surface0 rounded-md" />
-            <span class="ml-2 my-auto">Main Site</span>
+            <span class={`ml-2 my-auto ${sidebarOpen ? "" : "hidden"}`}>Main Site</span>
         </a>
         {#each docData.pages as page}
             <a href={page.path} class="flex text-xl font-bold transition-color duration-300 hover:bg-ctp-crust/80 p-2 rounded-md">
