@@ -419,3 +419,105 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
     Ok(AST::Null)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unknown_variable() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Identifer("unknown".to_string());
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::Null);
+    }
+
+    #[test]
+    fn unknown_function() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Call { name: "cookie".to_string(), args: vec![], line: 0 };
+
+        match eval(expr, &mut context) {
+            Ok(_) => {
+                assert!(false);
+            }
+
+            Err(e) => {
+                assert_eq!(e, "Function cookie not found");
+            }
+        }
+    }
+
+    #[test]
+    fn addition() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Addition { left: Box::new(AST::Number(1)), right: Box::new(AST::Number(2)), line: 0 };
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::Number(3));
+    }
+
+    #[test]
+    fn subtraction() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Subtraction { left: Box::new(AST::Number(1)), right: Box::new(AST::Number(2)), line: 0 };
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::Number(-1));
+    }
+
+    #[test]
+    fn negative_num() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Subtraction { left: Box::new(AST::Null), right: Box::new(AST::Number(2)), line: 0 };
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::Number(-2));
+    }
+
+    #[test]
+    fn join_strings() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Addition { left: Box::new(AST::String("Hello,".to_string())), right: Box::new(AST::String(" World!".to_string())), line: 0 };
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::String("Hello, World!".to_string()));
+    }
+
+    #[test]
+    fn add_floats() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Addition { left: Box::new(AST::Float(1.0)), right: Box::new(AST::Float(2.0)), line: 0 };
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::Float(3.0));
+    }
+
+    #[test]
+    fn add_float_and_int() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Addition { left: Box::new(AST::Float(1.0)), right: Box::new(AST::Number(2)), line: 0 };
+
+        assert_eq!(eval(expr, &mut context).unwrap(), AST::Float(3.0));
+    }
+
+    #[test]
+    fn add_int_and_string() {
+        let mut context = HashMap::new();
+
+        let expr = AST::Addition { left: Box::new(AST::Number(1)), right: Box::new(AST::String(" cookie".to_string())), line: 0 };
+
+        match eval(expr, &mut context) {
+            Ok(_) => {
+                assert!(false);
+            }
+
+            Err(e) => {
+                assert_eq!(e, "Cannot add Number(1) and String(\" cookie\")");
+            }
+        }
+    }
+}
