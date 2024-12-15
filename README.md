@@ -1,4 +1,4 @@
-# Modu
+![image](https://github.com/user-attachments/assets/eba65243-9e7f-4720-979b-d47e16cb45cb)# Modu
 <a href="https://crates.io/crates/modu">
   <img alt="Crates.io Version" src="https://img.shields.io/crates/v/modu?style=for-the-badge">
 </a>
@@ -10,3 +10,6 @@ It is designed to be easy to learn and use like python, but fast and efficient l
 With streamlined error messages for easy debugging
 
 Code examples: https://www.cyteon.tech/modu/examples
+Documentation: https://www.cyteon.tech/modu/docs/quickstart
+
+![image](https://github.com/user-attachments/assets/f940124a-008d-4dcf-a337-6200d9f40abf)
