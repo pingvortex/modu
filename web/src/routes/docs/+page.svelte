@@ -2,8 +2,9 @@
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
     import { base } from "$app/paths";
+    import { onMount } from "svelte";
 
-    if (browser) {
+    onMount(() => {
         goto(base + "/docs/quickstart");
-    }
+    });
 </script>
