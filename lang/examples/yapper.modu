@@ -1,3 +1,5 @@
+let abc = 123;
+
 fn yap(str) {
     print(str);
 }

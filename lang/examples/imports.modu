@@ -1,7 +1,9 @@
 import "yapper.modu" as yapper
 
 yapper.yap("Hello, World!");
+print(yapper.abc);
 
 // Expected Output:
 //
 // Hello, World!
+// 123

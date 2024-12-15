@@ -412,6 +412,42 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
+        AST::PropertyAccess { object, property, line } => {
+            match object {
+                Some(name) => {
+                    match context.get(&name) {
+                        Some(value) => {
+                            match value {
+                                AST::Object { properties, line } => {
+                                    match properties.get(property.as_ref().unwrap()) {
+                                        Some(value) => {
+                                            return Ok(value.clone());
+                                        }
+
+                                        None => {
+                                            return Err(format!("Property {:?} not found", property));
+                                        }
+                                    }
+                                }
+
+                                _ => {
+                                    return Err(format!("{} is not an object", name));
+                                }
+                            }
+                        }
+
+                        None => {
+                            return Err(format!("Variable {} not found", name));
+                        }
+                    }
+                }
+
+                None => {
+                    return Err("Object not found".to_string());
+                }
+            }
+        }
+
         _ => {
             return Err(format!("Unknown expression, got {:?}", expr));
         }
