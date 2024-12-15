@@ -1,15 +1,19 @@
-print(123);
-print("woah no way this works. this works?");
-print(true);
+let a = 5;
+let b = -5
+let c = a - b
 
-// print("this shouldnt print")
-/* print("this shouldnt print either") */
-print("this should print and not break" /* lmao */)
+print(a);
+print(b);
+print(c)
 
-let x = "This broke?";
-let y = false;
-let z = 12345;
+if a != b {
+    print("a != b")
+}
 
-print(x);
-print(y);
-print(z);
+if c == 10 {
+    print("c == 10");
+};
+
+// just testing semicolon stuff lol
+
+print(1+1); let d = 1; print(d + d);;;
