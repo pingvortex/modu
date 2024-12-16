@@ -1,10 +1,8 @@
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::write};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AST {
-    Comment,
-
     LetDeclaration {
         name: Option<String>,
         value: Box<AST>,
@@ -51,6 +49,13 @@ pub enum AST {
         name: String,
         args: Vec<String>,
         body: Vec<AST>,
+        line: usize,
+    },
+
+    InternalFunction {
+        name: String,
+        args: Vec<String>,
+        call_fn: fn(Vec<AST>, &mut HashMap<String, AST>) -> Result<AST, String>,
         line: usize,
     },
 
@@ -107,3 +112,16 @@ pub enum AST {
     Semicolon,
 }
 
+
+impl std::fmt::Display for AST {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            // TODO: Implement
+            AST::String(s) => write!(f, "{}", s),
+            AST::Number(n) => write!(f, "{}", n),
+            AST::Float(n) => write!(f, "{}", n),
+            AST::Boolean(b) => write!(f, "{}", b),
+            _ => write!(f, "{:?}", self),
+        }
+    }
+}

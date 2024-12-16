@@ -3,6 +3,7 @@ mod ast;
 mod parser;
 mod eval;
 mod utils;
+mod internal;
 
 use std::io::Write;
 
@@ -23,7 +24,7 @@ fn main() {
         "run" => {
             let file: String = std::fs::read_to_string(&args[2]).unwrap();
 
-            let context = &mut std::collections::HashMap::new();
+            let context = &mut utils::create_context();
 
             parser::parse(&file, context).unwrap_or_else(|e| {
                 println!("\n⚠️  {}", e.0);
@@ -50,7 +51,7 @@ fn main() {
         "repl" => {
             println!("Modu REPL");
 
-            let context = &mut std::collections::HashMap::new();
+            let context = &mut utils::create_context();
             
             let mut current_line = 0;
             let mut history: Vec<String> = Vec::new();

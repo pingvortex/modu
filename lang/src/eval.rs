@@ -7,91 +7,6 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
     match expr {
         AST::Call { name, args, line: _ } => {
             match name.as_str() {
-                "print" => {
-                    if args.len() == 1 {
-                        match eval(args[0].clone(), context)? {
-                            AST::String(s) => {
-                                println!("{}", s.replace("\"", ""));
-                            }
-    
-                            AST::Number(n) => {
-                                println!("{}", n);
-                            }
-
-                            AST::Float(f) => {
-                                println!("{}", f);
-                            }
-
-                            AST::Boolean(b) => {
-                                println!("{}", b);
-                            }
-
-                            AST::PropertyAccess { object, property, line } => {
-                                match object {
-                                    Some(name) => {
-                                        match context.get(&name) {
-                                            Some(value) => {
-                                                match value {
-                                                    AST::Object { properties, line: _ } => {
-                                                        match properties.get(property.as_ref().unwrap()) {
-                                                            Some(value) => {
-                                                                match value {
-                                                                    AST::String(s) => {
-                                                                        println!("{}", s.replace("\"", ""));
-                                                                    }
-                                    
-                                                                    AST::Number(n) => {
-                                                                        println!("{}", n);
-                                                                    }
-                                    
-                                                                    AST::Boolean(b) => {
-                                                                        println!("{}", b);
-                                                                    }
-                                    
-                                                                    _ => {
-                                                                        println!("{:?}", value);
-                                                                    }
-                                                                }
-                                                            }
-                                    
-                                                            None => {
-                                                                return Err(format!("Property {:?} not found", property));
-                                                            }
-                                                        }
-                                                    }
-                                    
-                                                    _ => {
-                                                        return Err(format!("{} is not an object", name));
-                                                    }
-                                                }
-                                            }
-                                    
-                                            None => {
-                                                return Err(format!("Variable {} not found", name));
-                                            }
-                                        }
-                                    }
-
-                                    None => {
-                                        return Err("Object not found".to_string());
-                                    }
-                                }
-                            }
-    
-                            _ => {
-                                println!("{:?}", eval(args[0].clone(), context)?);
-                            }
-                        }
-                    } else {
-                        return Err("print() takes one argument".to_string());
-                    }
-                }
-
-                "exit" => {
-                    println!("Exiting...");
-                    std::process::exit(0);
-                }
-
                 _ => {
                     match context.get(&name) {
                         Some(value) => {
@@ -107,6 +22,14 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         for expr in body {
                                             eval(expr.clone(), &mut new_context)?;
                                         }
+                                    } else {
+                                        return Err(format!("{} takes {} arguments", name, f_args.len()));
+                                    }
+                                }
+
+                                AST::InternalFunction { name: _, args: f_args, call_fn, line: _ } => {
+                                    if args.len() == f_args.len() {
+                                        return call_fn(args, context);
                                     } else {
                                         return Err(format!("{} takes {} arguments", name, f_args.len()));
                                     }
@@ -179,7 +102,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                     match crate::parser::parse(&file, &mut new_context) {
                         Ok(_) => {
-                            let mut properties = HashMap::new();
+                            let mut properties = crate::utils::create_context();
 
                             for (name, value) in new_context {
                                 properties.insert(name, value);
@@ -462,7 +385,7 @@ mod tests {
 
     #[test]
     fn unknown_variable() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Identifer("unknown".to_string());
 
@@ -471,7 +394,7 @@ mod tests {
 
     #[test]
     fn unknown_function() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Call { name: "cookie".to_string(), args: vec![], line: 0 };
 
@@ -488,7 +411,7 @@ mod tests {
 
     #[test]
     fn addition() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Addition { left: Box::new(AST::Number(1)), right: Box::new(AST::Number(2)), line: 0 };
 
@@ -497,7 +420,7 @@ mod tests {
 
     #[test]
     fn subtraction() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Subtraction { left: Box::new(AST::Number(1)), right: Box::new(AST::Number(2)), line: 0 };
 
@@ -506,7 +429,7 @@ mod tests {
 
     #[test]
     fn negative_num() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Subtraction { left: Box::new(AST::Null), right: Box::new(AST::Number(2)), line: 0 };
 
@@ -515,7 +438,7 @@ mod tests {
 
     #[test]
     fn join_strings() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Addition { left: Box::new(AST::String("Hello,".to_string())), right: Box::new(AST::String(" World!".to_string())), line: 0 };
 
@@ -524,7 +447,7 @@ mod tests {
 
     #[test]
     fn add_floats() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Addition { left: Box::new(AST::Float(1.0)), right: Box::new(AST::Float(2.0)), line: 0 };
 
@@ -533,7 +456,7 @@ mod tests {
 
     #[test]
     fn add_float_and_int() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Addition { left: Box::new(AST::Float(1.0)), right: Box::new(AST::Number(2)), line: 0 };
 
@@ -542,7 +465,7 @@ mod tests {
 
     #[test]
     fn add_int_and_string() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
 
         let expr = AST::Addition { left: Box::new(AST::Number(1)), right: Box::new(AST::String(" cookie".to_string())), line: 0 };
 

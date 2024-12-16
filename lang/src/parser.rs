@@ -435,7 +435,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::Function { name, mut args, body, line } => {
+                        AST::Function { name, args, body, line } => {
                             temp_ast.push(AST::Function {
                                 name,
                                 args,
@@ -1274,7 +1274,7 @@ mod tests {
 
     #[test]
     fn let_str() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("let x = \"test\"", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1283,7 +1283,7 @@ mod tests {
 
     #[test]
     fn let_number() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("let x = 10", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1291,7 +1291,7 @@ mod tests {
 
     #[test]
     fn let_boolean() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("let x = true", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1299,7 +1299,7 @@ mod tests {
 
     #[test]
     fn let_float() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("let x = 1.123", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1307,7 +1307,7 @@ mod tests {
 
     #[test]
     fn let_unknown_var() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("let x = y", &mut context);
 
         assert_eq!(result, Err(("Variable y not found".to_string(), 1)));
@@ -1315,7 +1315,7 @@ mod tests {
 
     #[test]
     fn print_str() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("print(\"Hello, world!\")", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1323,7 +1323,7 @@ mod tests {
 
     #[test]
     fn print_number() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("print(10)", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1331,7 +1331,7 @@ mod tests {
 
     #[test]
     fn print_float() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("print(1.123)", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1339,7 +1339,7 @@ mod tests {
 
     #[test]
     fn print_boolean() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("print(true)", &mut context);
 
         assert_eq!(result, Ok(()));
@@ -1348,7 +1348,7 @@ mod tests {
 
     #[test]
     fn print_var() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         parse("let x = 10", &mut context).unwrap();
 
         let result = parse("print(x)", &mut context);
@@ -1358,7 +1358,7 @@ mod tests {
 
     #[test]
     fn print_unknown_var() {
-        let mut context = HashMap::new();
+        let mut context = crate::utils::create_context();
         let result = parse("print(x)", &mut context);
 
         assert_eq!(result, Ok(())); // cause prints Null
