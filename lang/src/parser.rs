@@ -409,6 +409,46 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         return Err(("Expected a let declaration before '='".to_string(), current_line));
                     }
                 }
+
+                Ok(Token::Comma) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Call { name, mut args, line } => {
+                            args.push(AST::Comma);
+
+                            temp_ast.push(AST::Call {
+                                name,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::PropertyCall { object, property, mut args, line } => {
+                            args.push(AST::Comma);
+
+                            temp_ast.push(AST::PropertyCall {
+                                object,
+                                property,
+                                args,
+                                line,
+                            });
+                        }
+
+                        AST::Function { name, mut args, body, line } => {
+                            temp_ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err(("Expected a call or property call before ','".to_string(), current_line));
+                        }
+                    }
+                }
     
                 Ok(Token::LParen) => {
                     match temp_ast.pop().unwrap_or(AST::Null) {
@@ -1033,7 +1073,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         _ => {
-                            return Err(("Expected a call or function before ')'".to_string(), current_line));
+                            return Err((format!("Expected a call or property call before ')', got {:?}", temp_ast.pop().unwrap_or(AST::Null)), current_line));
                         }
                     }
                 }
