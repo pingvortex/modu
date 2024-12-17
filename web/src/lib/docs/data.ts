@@ -1,4 +1,4 @@
-import { Home, Baseline, File, Equal } from "lucide-svelte"
+import { Home, Baseline, File, Equal, TriangleAlert } from "lucide-svelte"
 
 export default {
     pages: [
@@ -21,6 +21,11 @@ export default {
             "path": "math",
             "title": "Math",
             "icon": Equal,
+        },
+        {
+            "path": "limitations",
+            "title": "Limitations",
+            "icon": TriangleAlert,
         }
     ]
 }
