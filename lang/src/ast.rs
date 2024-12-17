@@ -59,6 +59,11 @@ pub enum AST {
         line: usize,
     },
 
+    Exists {
+        value: Box<AST>,
+        line: usize,
+    },
+
     IsEqual {
         left: Box<AST>,
         right: Box<AST>,
@@ -121,6 +126,7 @@ impl std::fmt::Display for AST {
             AST::Number(n) => write!(f, "{}", n),
             AST::Float(n) => write!(f, "{}", n),
             AST::Boolean(b) => write!(f, "{}", b),
+            AST::Null => write!(f, "null"),
             _ => write!(f, "{:?}", self),
         }
     }

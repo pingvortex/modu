@@ -1107,6 +1107,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             body_starts = true;
                         }
 
+                        AST::Identifer(name) => {
+                            match temp_ast.pop() {
+                                Some(AST::IfStatement { condition, body, line }) => {
+                                    temp_ast.push(AST::IfStatement {
+                                        condition: Box::new(AST::Exists {
+                                            value: Box::new(AST::Identifer(name)),
+                                            line,
+                                        }),
+                                        body,
+                                        line,
+                                    });
+
+                                    in_body = true;
+                                    body_starts = true;
+                                }
+
+                                Some(_) => {
+                                    return Err(("Expected an if statement before '{'".to_string(), current_line));
+                                }
+
+                                None => {
+                                    return Err(("Expected an if statement before '{'".to_string(), current_line));
+                                }
+                            }
+                        }
+
                         _ => {
                             return Err(("Expected a function before '{'".to_string(), current_line));
                         }

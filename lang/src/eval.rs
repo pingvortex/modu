@@ -230,6 +230,18 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
+        AST::Exists { value, line } => {
+            match eval(*value, context)? {
+                AST::Null => {
+                    return Ok(AST::Boolean(false));
+                }
+
+                _ => {
+                    return Ok(AST::Boolean(true));
+                }
+            }
+        }
+
         AST::IfStatement { condition, body, line } => {
             match eval(*condition, context)? {
                 AST::Boolean(b) => {
