@@ -70,9 +70,9 @@ With streamlined error messages for easy debugging</pre>
             </a>
         </div>
 
-        <div class="mx-auto mb-2 bg-ctp-mantle p-4 rounded-md">
-            <h2 class="font-bold mb-1 text-2xl text-center">Error Example</h2>
-            <pre class="text-lg whitespace-pre-wrap break-all">
+        <div class="mx-auto bg-ctp-mantle p-4 pt-3 rounded-md">
+            <h2 class="font-bold mb-3 text-3xl text-center">Error Example</h2>
+            <pre class="text-lg whitespace-re-wrap break-all">
 <span class="text-ctp-red">let</span> x = <span class="text-ctp-peach">10.5</span>;
 <span class="text-ctp-red">let</span> y = x;
 <span class="text-ctp-pink">print</span>(x);
