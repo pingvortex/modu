@@ -13,13 +13,3 @@ fn a(b, c) {
 ```
 This will cause an error: ⚠️  Expected a function before '}' \
 This error is pending a fix
-
-### You cannot use if statements to see if item exists, example:
-```rust
-if a {
-    print("a");
-}
-```
-
-This will cause an error: ⚠️  Expected a function before '}' \
-This error is pending a fix

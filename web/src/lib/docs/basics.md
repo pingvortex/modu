@@ -60,3 +60,10 @@ if 1 != 2 {
 // yes
 // duh
 ```
+
+You can also use conditions to a check if a value is not null in a simpler, more clean way:
+```rust
+if a {
+    print("a exists");
+}
+```
