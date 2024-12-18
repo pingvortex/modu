@@ -9,4 +9,4 @@ print(z);
 //
 // 10.5
 // 10.5
-// <error msg>
+// null
