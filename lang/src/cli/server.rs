@@ -14,7 +14,7 @@ pub fn server() {
 
     println!("Modu server starting on port {}", port);
 
-    rouille::start_server(format!("localhost:{}", port), move |request| {
+    rouille::start_server(format!("0.0.0.0:{}", port), move |request| {
         router!(request,
             (GET) (/) => {
                 rouille::Response::text("Modu interpreter server is running")
