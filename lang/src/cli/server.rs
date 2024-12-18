@@ -23,7 +23,7 @@ pub fn server() {
             (POST) (/eval) => {
                 println!("POST /eval | {} | {}", request.remote_addr(), request.header("User-Agent").unwrap_or("unknown"));
 
-                let text = rouille::try_or_400!(rouille::input::plain_text_body(request));
+                let text = rouille::input::plain_text_body(request).unwrap_or("".to_string());
 
                 let context = &mut utils::create_context();
 
@@ -44,7 +44,30 @@ pub fn server() {
                         .unwrap()
                 ).unwrap();
 
-                rouille::Response::text(captured)
+                rouille::Response {
+                    status_code: 200,
+                    headers: vec![
+                        ("Content-Type".into(), "text/plain".into()),
+                        ("Access-Control-Allow-Origin".into(), "*".into()),
+                        ("Access-Control-Allow-Methods".into(), "GET, POST, OPTIONS".into()),
+                        ("Access-Control-Allow-Headers".into(), "Content-Type".into()),
+                    ],
+                    data: rouille::ResponseBody::from_string(captured),
+                    upgrade: None
+                }
+            },
+
+            (OPTIONS) (/eval) => {
+                rouille::Response {
+                    status_code: 200,
+                    headers: vec![
+                        ("Access-Control-Allow-Origin".into(), "*".into()),
+                        ("Access-Control-Allow-Methods".into(), "GET, POST, OPTIONS".into()),
+                        ("Access-Control-Allow-Headers".into(), "Content-Type".into()),
+                    ],
+                    data: rouille::ResponseBody::empty(),
+                    upgrade: None
+                }
             },
 
             _ => {
