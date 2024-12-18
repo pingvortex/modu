@@ -13,3 +13,4 @@ keywords = ["programming-language", "cli", "interpreter", "language"]
 [dependencies]
 bat = "0.24.0"
 logos = "0.15.0"
+rouille = "3.6.2"
