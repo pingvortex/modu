@@ -83,6 +83,11 @@
     }
 </script>
 
+<svelte:head>
+    <meta name="title" content="Modu Web IDE" />
+    <meta name="description" content="Online IDE for Modu, run code without installing anything." />
+</svelte:head>
+
 <div class="flex flex-col w-full h-screen">
     <div class="w-full border-b border-b-ctp-surface0 p-2 px-4 flex">
         <a href={base + "/"} class="text-3xl font-bold inline-block bg-clip-text text-transparent bg-gradient-to-r from-ctp-red to-75% to-ctp-yellow">Modu</a>

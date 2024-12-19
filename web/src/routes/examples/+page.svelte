@@ -3,6 +3,11 @@
     import { base } from '$app/paths';
 </script>
 
+<svelte:head>
+    <meta name="title" content="Modu Examples" />
+    <meta name="description" content="Examples of the Modu programming language." />
+</svelte:head>
+
 <div class="flex flex-col w-full">
     <div class="mx-auto">
         <h1 class="mt-4 w-full font-bold text-7xl">Examples</h1>

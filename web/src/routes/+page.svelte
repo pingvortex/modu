@@ -24,6 +24,9 @@
     <script
         src="https://rawcdn.githack.com/Cyteon/assets/d294f053d31b9b61beedab38577934a6bab764d7/prismjs/js/rust-only.js"
     ></script>
+
+    <meta name="title" content="Modu" />
+    <meta name="description" content="A simple and fast interpreted programming language." />
 </svelte:head>
 
 <div class="flex w-full max-w-screen h-screen flex-col max-w-screen overflow-x-hidden">

@@ -44,6 +44,9 @@
     <script
         src="https://rawcdn.githack.com/Cyteon/assets/d294f053d31b9b61beedab38577934a6bab764d7/prismjs/js/rust-only.js"
     ></script>
+
+    <meta name="title" content="Modu Documentation" />
+    <meta name="description" content="Documentation for the Modu programming language." />
 </svelte:head>
 
 <div class="flex h-screen w-full">
