@@ -25,14 +25,28 @@ pub fn server() {
 
                 let text = rouille::input::plain_text_body(request).unwrap_or("".to_string());
 
+                if text.contains("exit") {
+                    return rouille::Response {
+                        status_code: 200,
+                        headers: vec![
+                            ("Content-Type".into(), "text/plain".into()),
+                            ("Access-Control-Allow-Origin".into(), "*".into()),
+                            ("Access-Control-Allow-Methods".into(), "GET, POST, OPTIONS".into()),
+                            ("Access-Control-Allow-Headers".into(), "Content-Type".into()),
+                        ],
+                        data: rouille::ResponseBody::from_string("exit() is disabled on the server".to_string()),
+                        upgrade: None
+                    };
+                }
+
                 let context = &mut utils::create_context();
 
                 std::io::set_output_capture(Some(Default::default()));
 
                 parse(&text, context).unwrap_or_else(|e| {
-                    println!("\n⚠️  {}", e.0);
+                    println!("\n⚠️ {}", e.0);
                     println!("Traceback (most recent call last):");
-                    println!("    File \"<stdin>\", line 1");
+                    println!("    File \"<stdin>\", line {}", e.1);
                 });
 
                 let captured = String::from_utf8(
