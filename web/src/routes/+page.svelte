@@ -1,16 +1,34 @@
 <script lang="ts">
-    import { Github, ExternalLink, Book, CircleHelp, Box } from "lucide-svelte";
+    import { Github, ExternalLink, Book, CircleHelp, Box, Code } from "lucide-svelte";
     import { base } from "$app/paths";
 
     let githubHovered = false;
     let cratesIoHovered = false;
     let moreExamplesHovered = false;
     let docsHovered = false;
+    let ideHovered = false;
+
+    setTimeout(() => {
+        if (typeof Prism !== "undefined") {
+            Prism.highlightAll();
+        }
+    }, 100);
 </script>
 
-<div class="flex w-full max-w-screen h-screen flex-col">
+<svelte:head>
+    <link
+        href="https://rawcdn.githack.com/Cyteon/assets/05f98dd21d2870fe70f1f8d51912ef0e2ee9c9c8/prismjs/css/mocha.css"
+        rel="stylesheet"
+    />
+
+    <script
+        src="https://rawcdn.githack.com/Cyteon/assets/d294f053d31b9b61beedab38577934a6bab764d7/prismjs/js/rust-only.js"
+    ></script>
+</svelte:head>
+
+<div class="flex w-full max-w-screen h-screen flex-col max-w-screen overflow-x-hidden">
     <div class="h-fit bg-ctp-mantle text-center pt-2 pb-6 border-b border-b-ctp-surface0">
-        <h1 class="text-ctp-yellow text-8xl font-bold [text-shadow:_0_0_10px_#f9e2af] mb-4">Modu</h1>
+        <h1 class="text-8xl font-bold inline-block bg-clip-text bg-gradient-to-r from-ctp-red to-ctp-yellow to-75% text-transparent mb-4">Modu</h1>
         
         <div class="flex space-x-2 justify-center">
             <a 
@@ -37,30 +55,22 @@
         </div>
     </div>
 
-    <div class="flex flex-col px-2 mx-auto">
-        <div class="text-center mx-auto mt-8 bg-ctp-mantle p-4 rounded-md">
-            <pre class="text-lg whitespace-pre-wrap">
-Modu is a simple and fast interpreted programming language. 
-It is designed to be easy to learn and use like python,
-but fast and efficient like Rust.
-With streamlined error messages for easy debugging</pre>
-        </div>
-
-        <div class="my-6 mx-auto space-x-4 flex">
+    <div class="flex flex-col px-2 md:mx-auto">
+        <div class="my-6 mx-auto space-y-2 flex-col flex md:flex-row md:space-x-4 md:space-y-0">
             <a 
                 href={base + "/examples"}
-                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center font-mono w-fit flex"
+                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center font-mono w-full flex md:w-fit"
                 on:mouseenter={() => moreExamplesHovered = true}
                 on:mouseleave={() => moreExamplesHovered = false}
             >
                 <CircleHelp size={20} class="my-auto" />
-                <span class="ml-1 text-xl mt-0.5">More Examples</span>
-                <ExternalLink size={20} class={`my-auto ${moreExamplesHovered ? "ml-1 w-6" : "w-0"} transition-all duration-300`} />
+                <span class="ml-1 mt-0.5">More Examples</span>
+                <ExternalLink size={20} class={`my-auto ${moreExamplesHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
 
             <a 
                 href={base + "/docs/quickstart"}
-                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-fit flex"
+                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-full flex md:w-fit"
                 on:mouseenter={() => docsHovered = true}
                 on:mouseleave={() => docsHovered = false}
             >
@@ -68,31 +78,55 @@ With streamlined error messages for easy debugging</pre>
                 <span class="ml-1 mt-0.5">Docs</span>
                 <ExternalLink size={20} class={`my-auto ${docsHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
+
+            <a 
+                href={base + "/ide"}
+                class="bg-ctp-yellow text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-full flex md:w-fit"
+                on:mouseenter={() => ideHovered = true}
+                on:mouseleave={() => ideHovered = false}
+            >
+                <Code size={20} class="my-auto" />
+                <span class="ml-2 mt-0.5">Web IDE</span>
+                <ExternalLink size={20} class={`my-auto ${ideHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
+            </a>
         </div>
 
-        <div class="mx-auto bg-ctp-mantle p-4 pt-3 rounded-md">
-            <h2 class="font-bold mb-3 text-3xl text-center">Error Example</h2>
-            <pre class="text-lg whitespace-re-wrap break-all">
-<span class="text-ctp-red">let</span> x = <span class="text-ctp-peach">10.5</span>;
-<span class="text-ctp-red">let</span> y = x;
-<span class="text-ctp-pink">print</span>(x);
-<span class="text-ctp-pink">print</span>(y);
-<span class="text-ctp-pink">print</span>(z);
-                
-<span class="text-ctp-subtext0">// Output</span>
-                
-10.5
-10.5
-                
-⚠️ Variable z not found
-Traceback (most recent call last):
-    File "file.modu", line 6
-─────┬──────────────────────────────────────────────────────
-     │ File: file.modu
-─────┼──────────────────────────────────────────────────────
-   5 │ print(y);
-   6 │ print(z);
-─────┴──────────────────────────────────────────────────────</pre>
+        <div class="text-center mx-auto bg-ctp-mantle p-4 rounded-md">
+            <pre class="text-lg whitespace-pre-wrap">
+Modu is a simple and fast interpreted programming language. 
+It is designed to be easy to learn and use like python,
+but fast and efficient like Rust.
+With streamlined error messages for easy debugging</pre>
+        </div>
+
+        <div class="mx-auto bg-ctp-mantle py-3 w-full rounded-md mt-4 mb-4 max-w-screen">
+            <h1 class="text-3xl font-bold text-center">Example</h1>
+            <pre class="text-lg whitespace-pre-wrap break-words language-rust"><code>{`let a = 1;
+let b = -2;
+let c = a - b;
+                        
+if a == b {
+    print("a is equal to b");
+}
+                        
+                        
+if a != b {
+    print("a is not equal to b");
+}
+                        
+fn example() {
+    print("Hello, World");
+}
+                        
+if c == 3 {
+    example();
+}
+                        
+                        
+// Output
+// 
+// a is not equal to b
+// Hello, World!`}</code></pre>
         </div>
     </div>
 </div>
