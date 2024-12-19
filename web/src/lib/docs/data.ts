@@ -1,4 +1,4 @@
-import { Home, Baseline, File, Equal, TriangleAlert } from "lucide-svelte"
+import { Home, Baseline, File, Equal, TriangleAlert, Server } from "lucide-svelte"
 
 export default {
     pages: [
@@ -26,6 +26,11 @@ export default {
             "path": "limitations",
             "title": "Limitations",
             "icon": TriangleAlert,
+        },
+        {
+            "path": "server",
+            "title": "Server",
+            "icon": Server,
         }
     ]
 }
