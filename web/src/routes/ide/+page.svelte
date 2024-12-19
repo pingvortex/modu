@@ -1,6 +1,6 @@
 <script lang="ts">
     import { PUBLIC_VITE_IDE_BACKEND } from "$env/static/public";
-    import { Play } from "lucide-svelte";
+    import { Play, Download, Upload } from "lucide-svelte";
     import { basicSetup, EditorView } from "codemirror";
     import { EditorState, Compartment } from "@codemirror/state"
     import { rust } from "@codemirror/lang-rust";
@@ -65,8 +65,12 @@
     })
 
     let output = "";
+    let runClicked = false;
 
     async function run() {
+        runClicked = true;
+        output = "Running...";
+
         const res = await fetch(PUBLIC_VITE_IDE_BACKEND + "/eval", {
             method: "POST",
             headers: {
@@ -80,6 +84,35 @@
         if (output == "") {
             output = "No output";
         }
+
+        setTimeout(() => {
+            runClicked = false;
+        }, 1000);
+    }
+
+    function download() {
+        const blob = new Blob([view.state.doc.toString()], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "main.modu";
+        a.click();
+    }
+
+    function upload() {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".modu";
+
+        input.onchange = async () => {
+            const file = input.files[0];
+            const text = await file.text();
+            view.dispatch({
+                changes: { from: 0, to: view.state.doc.length, insert: text },
+            });
+        };
+
+        input.click();
     }
 </script>
 
@@ -97,9 +130,16 @@
         </div>
 
         <div class="ml-auto flex">
-            <button class="bg-ctp-blue text-ctp-crust px-2 rounded-md my-auto text-center font-mono w-fit flex" on:click={run}>
-                <Play size={20} class="my-auto" />
-                <span class="ml-1 text-xl mt-0.5">Run</span>
+            <button class={`${runClicked ? "text-ctp-green" : ""} mr-5`} on:click={run}>
+                <Play size={28} class="my-auto" />
+            </button>
+
+            <button class="mr-5" on:click={download}>
+                <Download size={28} class="my-auto" />
+            </button>
+
+            <button on:click={upload}>
+                <Upload size={28} class="my-auto" />
             </button>
         </div>
     </div>
@@ -117,3 +157,9 @@
         </div>
     </div>
 </div>
+
+<style>
+    button {
+        @apply rounded-md my-auto text-center font-mono w-fit flex transition-all duration-300 hover:text-ctp-yellow;
+    }
+</style>
