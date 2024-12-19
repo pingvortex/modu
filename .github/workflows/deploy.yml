@@ -29,7 +29,7 @@ jobs:
       - name: Build
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'
-          PUBLIC_VITE_IDE_BACKEND: 'https://modu.cyteon.hackclub.app/'
+          PUBLIC_VITE_IDE_BACKEND: 'https://modu.cyteon.hackclub.app'
         working-directory: web
         run: |
           npm run build
