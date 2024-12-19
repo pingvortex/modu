@@ -3,7 +3,18 @@ use crate::ast::AST;
 use std::{collections::HashMap, path::PathBuf};
 use crate::utils;
 
+static mut depth: u32 = 0;
+
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    unsafe {
+        depth += 1;
+
+        if depth > 100 {
+            depth = 0;
+            return Err("Maximum recursion depth exceeded".to_string());
+        }
+    }
+
     match expr {
         AST::Call { name, args, line: _ } => {
             match name.as_str() {
@@ -386,6 +397,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
         _ => {
             return Err(format!("Unknown expression, got {:?}", expr));
         }
+    }
+
+    unsafe {
+        depth -= 1;
     }
 
     Ok(AST::Null)
