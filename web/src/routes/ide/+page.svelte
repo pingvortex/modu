@@ -13,7 +13,7 @@
     let language = new Compartment, tabsize = new Compartment;
 
     let state = EditorState.create({
-        doc: "print(\"Hello, World!\");\n\n\n\n\n\n\n\n\n",
+        doc: "print(\"Hello, World!\");",
         extensions: [
             basicSetup,
             language.of(rust()),
@@ -23,6 +23,7 @@
                     color: "#cdd6f4",
                     backgroundColor: "#11111b",
                     fontSize: "24px",
+                    height: "100%",
                 },
 
                 "&.cm-focused": {
@@ -30,6 +31,10 @@
                 },
 
                 ".cm-activeLine": {
+                    backgroundColor: "#89b4fa10",
+                },
+
+                ".cm-activeLineGutter" : {
                     backgroundColor: "#89b4fa10",
                 },
 
@@ -147,7 +152,7 @@
     <div class="flex p-4 h-full space-y-4 flex-col md:flex-row md:space-x-4 md:space-y-0">
         <div class="bg-ctp-mantle w-full p-4 h-full rounded-md flex flex-col md:w-2/3">
             <h1 class="text-3xl font-bold">Input</h1>
-            <div id="code" class="mt-2"></div>
+            <div id="code" class="mt-2 h-full"></div>
         </div>
 
         <div class="bg-ctp-mantle w-full p-4 h-full rounded-md flex flex-col md:w-1/3">
