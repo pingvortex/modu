@@ -1,0 +1,82 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Modu",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#function"
+		},
+		{
+			"include": "#number"
+		},
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#null"
+		},
+		{
+			"include": "#variable"
+		},
+		{
+			"include": "#boolean"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.modu",
+				"match": "\\b(if|fn|let|import|as)\\b"
+
+			}]
+		},
+
+		"strings": {
+			"name": "string.quoted.double.modu",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.modu",
+					"match": "\\\\."
+				}
+			]
+		},
+
+		"function": {
+			"name": "entity.name.function.modu",
+			"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\("
+		},
+
+		"number": {
+			"name": "constant.numeric.modu",
+			"match": "\\b\\d+\\b"
+		},
+
+		"comment": {
+			"name": "comment.line.modu",
+			"match": "//.*$"
+		},
+
+		"null": {
+			"name": "constant.language.null.modu",
+			"match": "\\bnull\\b"
+		},
+
+		"variable": {
+			"name": "variable.other.modu",
+			"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+		},
+
+		"boolean": {
+			"name": "constant.language.modu",
+			"match": "\\b(true|false)\\b"
+		}
+	},
+	"scopeName": "source.modu"
+}
