@@ -69,30 +69,34 @@
         }
     })
 
-    let output = "";
+    let output = "Run the code to see the output";
     let runClicked = false;
 
     async function run() {
-        runClicked = true;
-        output = "Running...";
+        try {
+            runClicked = true;
+            output = "Running...";
 
-        const res = await fetch(PUBLIC_VITE_IDE_BACKEND + "/eval", {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain",
-            },
-            body: view.state.doc.toString(),
-        });
+            const res = await fetch(PUBLIC_VITE_IDE_BACKEND + "/eval", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "text/plain",
+                },
+                body: view.state.doc.toString(),
+            });
 
-        output = (await res.text()).trim();
+            output = (await res.text()).trim();
 
-        if (output == "") {
-            output = "No output";
+            if (output == "") {
+                output = "No output";
+            }
+
+            setTimeout(() => {
+                runClicked = false;
+            }, 1000);
+        } catch (e) {
+            output = e.message;
         }
-
-        setTimeout(() => {
-            runClicked = false;
-        }, 1000);
     }
 
     function download() {
@@ -139,26 +143,25 @@
                 <Play size={28} class="my-auto" />
             </button>
 
-            <button class="mr-5" on:click={download}>
+            <button class="mr-5" on:click={upload}>
                 <Download size={28} class="my-auto" />
             </button>
 
-            <button on:click={upload}>
+            <button on:click={download}>
                 <Upload size={28} class="my-auto" />
             </button>
         </div>
     </div>
 
     <div class="flex p-4 h-full space-y-4 flex-col md:flex-row md:space-x-4 md:space-y-0">
-        <div class="bg-ctp-mantle w-full p-4 h-full rounded-md flex flex-col md:w-2/3">
+        <div class="bg-ctp-mantle w-full p-6 pt-4 h-full rounded-md flex flex-col md:w-2/3">
             <h1 class="text-3xl font-bold">Input</h1>
-            <div id="code" class="mt-2 h-full"></div>
+            <div id="code" class="mt-4 h-full"></div>
         </div>
 
-        <div class="bg-ctp-mantle w-full p-4 h-full rounded-md flex flex-col md:w-1/3">
+        <div class="bg-ctp-mantle w-full p-6 pt-4 h-full rounded-md flex flex-col md:w-1/3">
             <h1 class="text-3xl font-bold">Output</h1>
-            <!-- pt-4 instead of mt-4 cause smth broke -->
-            <pre class="bg-ctp-mantle pt-4 text-xl break-words whitespace-pre-wrap">{output}</pre>
+            <pre class="p-4 mt-4 text-xl break-words whitespace-pre-wrap bg-ctp-crust h-full rounded-md">{output}</pre>
         </div>
     </div>
 </div>
