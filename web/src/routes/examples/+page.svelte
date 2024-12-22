@@ -35,10 +35,10 @@
 
 <span class="text-ctp-subtext0">// Output</span>
 
-Hello, World!
-1.5
-true
-true</pre>
+<span class="text-ctp-subtext0">// Hello, World!</span>
+<span class="text-ctp-subtext0">// 1.5</span>
+<span class="text-ctp-subtext0">// true</span>
+<span class="text-ctp-subtext0">// true</span></pre>
             </div>
         </div>
 
@@ -54,7 +54,7 @@ true</pre>
 
 <span class="text-ctp-subtext0">// Output</span>
 
-Hello, World!</pre>
+<span class="text-ctp-subtext0">// Hello, World!</span></pre>
             </div>
         </div> 
         <div class="w-full p-4">
@@ -76,7 +76,7 @@ yapper.<span class="text-ctp-pink">yap</span>(<span class="text-ctp-green">"Hell
 
 <span class="text-ctp-subtext0">// Output</span>
 
-Hello, World!</pre>
+<span class="text-ctp-subtext0">// Hello, World!</span></pre>
             </div>
         </div> 
         
@@ -99,7 +99,7 @@ Hello, World!</pre>
 
 <span class="text-ctp-subtext0">// Output</span>
 
-a is not equal to b</pre>
+<span class="text-ctp-subtext0">// a is not equal to b</span></pre>
             </div>
         </div>  
 
@@ -118,10 +118,10 @@ a is not equal to b</pre>
 
 <span class="text-ctp-subtext0">// Output</span>
 
-5
--5
-0
-1</pre>
+<span class="text-ctp-subtext0">// 5</span>
+<span class="text-ctp-subtext0">// -5</span>
+<span class="text-ctp-subtext0">// 0</span>
+<span class="text-ctp-subtext0">// 1</span></pre>
             </div>
         </div> 
     </div>
