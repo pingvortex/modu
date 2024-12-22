@@ -1220,6 +1220,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::Null => {
+                            for expr in temp_ast {
+                                body.push(expr);
+                            }
+
+                            ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+
                         _ => {
                             body.push(value);
 
