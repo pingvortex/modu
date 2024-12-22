@@ -1,15 +1,29 @@
-fn uh(a, b, c) {
-    if a == b {
-        print("a == b");
+fn example(a) {
+    if a == 3 {
+        print("Hello, World");
 
-        if b == c {
-            print("b == c");
-        }
-
-        if b != c {
-            print("b != c");
+        if a == 3 {
+            print("HELLO, WORLD");
         }
     }
 }
 
-uh(1, 1, 1);
+fn test_nesting(a, b, c) {
+    if a == b {
+        print("a is equal to b");
+
+        if c == 3 {
+            example(c);
+        }
+    }
+
+    if a != b {
+        print("a is not equal to b");
+
+        if c == 3 {
+            example(c);
+        }
+    }
+}
+
+test_nesting(1, 1, 3)

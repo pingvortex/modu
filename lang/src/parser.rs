@@ -5,6 +5,94 @@ use crate::eval::eval;
 use logos::Logos;
 use std::collections::HashMap;
 
+pub fn handle_nested_ast(mut ast: Vec<AST>, temp_ast: Vec<AST>, current_line: usize) -> Result<Vec<AST>, (String, usize)> {
+    if ast.is_empty() {
+        return Ok(temp_ast);
+    }
+
+    let last = ast.pop().unwrap();
+
+    match last {
+        AST::Function { name, args, mut body, line } => {
+            if let Some(last_body_expr) = body.pop() {
+                match last_body_expr {
+                    AST::IfStatement { condition, body: if_body, line: if_line } => {
+                        let updated_body = handle_nested_ast(if_body, temp_ast, current_line)?;
+
+                        body.push(AST::IfStatement {
+                            condition,
+                            body: updated_body,
+                            line: if_line,
+                        });
+                    }
+
+                    AST::Null => {
+                        body.extend(temp_ast);
+                    }
+
+                    other => {
+                        body.push(other);
+                        body.extend(temp_ast);
+                    }
+                }
+            } else {
+                body.extend(temp_ast);
+            }
+
+            ast.push(AST::Function {
+                name,
+                args,
+                body,
+                line,
+            });
+
+            Ok(ast)
+        }
+
+        AST::IfStatement { condition, mut body, line } => {
+            if let Some(last_body_expr) = body.pop() {
+                match last_body_expr {
+                    AST::IfStatement { condition: if_condition, body: if_body, line: if_line } => {
+                        let updated_body = handle_nested_ast(if_body, temp_ast, current_line)?;
+
+                        body.push(AST::IfStatement {
+                            condition: if_condition,
+                            body: updated_body,
+                            line: if_line,
+                        });
+                    }
+
+                    AST::Null => {
+                        body.extend(temp_ast);
+                    }
+
+                    other => {
+                        body.push(other);
+                        body.extend(temp_ast);
+                    }
+                }
+            } else {
+                body.extend(temp_ast);
+            }
+
+            ast.push(AST::IfStatement {
+                condition,
+                body,
+                line,
+            });
+
+            Ok(ast)
+        }
+
+        _ => {
+            ast.push(last);
+            ast.extend(temp_ast);
+
+            Ok(ast)
+        }
+    }
+}
+
 pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (String, usize)> {
     let verbose = std::env::args().collect::<Vec<String>>()
                             .iter().any(|arg| arg == "--verbose");
@@ -1194,120 +1282,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         }
 
         if bodies_deep > 0 && (!body_starts || bodies_deep > 1) {
-            let function = ast.pop().unwrap_or(AST::Null);
-
-            match function {
-                AST::Function { name, args, mut body, line } => {
-                    let value = body.pop().unwrap_or(AST::Null);
-
-                    match value {
-                        AST::IfStatement { condition, body: mut fn_body, line } => {
-                            for expr in temp_ast {
-                                fn_body.push(expr);
-                            }
-
-                            body.push(AST::IfStatement {
-                                condition,
-                                body: fn_body,
-                                line,
-                            });
-
-                            ast.push(AST::Function {
-                                name,
-                                args,
-                                body,
-                                line,
-                            });
-                        }
-
-                        AST::Null => {
-                            for expr in temp_ast {
-                                body.push(expr);
-                            }
-
-                            ast.push(AST::Function {
-                                name,
-                                args,
-                                body,
-                                line,
-                            });
-                        }
-
-                        _ => {
-                            body.push(value);
-
-                            for expr in temp_ast {
-                                body.push(expr);
-                            }
-
-                            ast.push(AST::Function {
-                                name,
-                                args,
-                                body,
-                                line,
-                            });
-                        }
-                    }
-                }
-
-                AST::IfStatement { condition, mut body, line } => {
-                    let value = body.pop().unwrap_or(AST::Null);
-
-                    match value {
-                        AST::IfStatement { condition: if_condition, body: mut if_body, line } => {
-                            for expr in temp_ast {
-                                if_body.push(expr);
-                            }
-
-                            body.push(AST::IfStatement {
-                                condition: if_condition,
-                                body: if_body,
-                                line,
-                            });
-
-                            ast.push(AST::IfStatement {
-                                condition,
-                                body,
-                                line,
-                            });
-                        }
-
-                        AST::Null => {
-                            for expr in temp_ast {
-                                body.push(expr);
-                            }
-
-                            ast.push(AST::IfStatement {
-                                condition,
-                                body,
-                                line,
-                            });
-                        }
-
-                        _ => {
-                            body.push(value);
-
-                            for expr in temp_ast {
-                                body.push(expr);
-                            }
-
-                            ast.push(AST::IfStatement {
-                                condition,
-                                body,
-                                line,
-                            });
-                        }
-                    }
-                }
-
-                _ => {
-                    if bodies_deep > 0 {
-                        bodies_deep -= 1;
-                    } else {
-                        return Err(("Expected a function or if statement before '}'".to_string(), current_line));
-                    }
-                }
-            }
+            ast = handle_nested_ast(ast, temp_ast, current_line)?;
         } else {
             ast.append(&mut temp_ast);
         }
