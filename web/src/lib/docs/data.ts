@@ -22,11 +22,11 @@ export default {
             "title": "Math",
             "icon": Equal,
         },
-        {
+        /*{
             "path": "limitations",
             "title": "Limitations",
             "icon": TriangleAlert,
-        },
+        },*/
         {
             "path": "server",
             "title": "Server",

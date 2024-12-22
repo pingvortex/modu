@@ -13,7 +13,16 @@
     let language = new Compartment, tabsize = new Compartment;
 
     let state = EditorState.create({
-        doc: "print(\"Hello, World!\");",
+        doc: `fn yap(str) {
+    print(str);
+}
+
+yap("Hello, World!");
+
+// Expected Output:
+//
+// Hello, World!
+        `,
         extensions: [
             basicSetup,
             language.of(rust()),
@@ -156,7 +165,7 @@
     <div class="flex p-4 h-full space-y-4 flex-col md:flex-row md:space-x-4 md:space-y-0">
         <div class="bg-ctp-mantle w-full p-6 pt-4 h-full rounded-md flex flex-col md:w-2/3">
             <h1 class="text-3xl font-bold">Input</h1>
-            <div id="code" class="mt-4 h-full"></div>
+            <div id="code" class="mt-4 h-full max-h-[83vh] rounded-md"></div>
         </div>
 
         <div class="bg-ctp-mantle w-full p-6 pt-4 h-full rounded-md flex flex-col md:w-1/3">
