@@ -755,6 +755,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::IfStatement { mut condition, body, line } => {
+                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
+                                condition = Box::new(AST::IsEqual {
+                                    left: left.clone(),
+                                    right: Box::new(AST::Addition { left: right.clone(), right: Box::new(AST::Null), line: *line }),
+                                    line: *line,
+                                });
+                            } else {
+                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left: left.clone(),
+                                        right: Box::new(AST::Addition { left: right.clone(), right: Box::new(AST::Null), line: *line }),
+                                        line: *line,
+                                    });
+                                } else {
+                                    return Err(("Expected a value before '+'".to_string(), current_line));
+                                }
+                            }
+
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+                        }
+
                         _ => {
                             return Err((format!("Expected a number, float, string, or let declaration before '+', got {:?}", value), current_line));
                         }
@@ -805,6 +831,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             temp_ast.push(AST::Call {
                                 name,
                                 args,
+                                line,
+                            });
+                        }
+
+                        AST::IfStatement { mut condition, body, line } => {
+                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
+                                condition = Box::new(AST::IsEqual {
+                                    left: left.clone(),
+                                    right: Box::new(AST::Subtraction { left: right.clone(), right: Box::new(AST::Null), line: *line }),
+                                    line: *line,
+                                });
+                            } else {
+                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left: left.clone(),
+                                        right: Box::new(AST::Subtraction { left: right.clone(), right: Box::new(AST::Null), line: *line }),
+                                        line: *line,
+                                    });
+                                } else {
+                                    return Err(("Expected a value before '-'".to_string(), current_line));
+                                }
+                            }
+
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
                                 line,
                             });
                         }
@@ -929,7 +981,37 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         line: *line,
                                     });
                                 } else {
-                                    return Err(("Expected a value before '=='".to_string(), current_line));
+                                    if let AST::Addition { left: addition_left, right, line } = right.as_ref() {
+                                        temp_ast.push(AST::IfStatement {
+                                            condition: Box::new(AST::IsEqual {
+                                                left: left.clone(),
+                                                right: Box::new(AST::Addition {
+                                                    left: addition_left.clone(),
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line: *line,
+                                                }),
+                                                line: *line,
+                                            }),
+                                            body,
+                                            line: *line,
+                                        });
+                                    } else if let AST::Subtraction { left: subtraction_left, right, line } = right.as_ref() {
+                                        temp_ast.push(AST::IfStatement {
+                                            condition: Box::new(AST::IsEqual {
+                                                left: left.clone(),
+                                                right: Box::new(AST::Subtraction {
+                                                    left: subtraction_left.clone(),
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line: *line,
+                                                }),
+                                                line: *line,
+                                            }),
+                                            body,
+                                            line: *line,
+                                        });
+                                    } else {
+                                        return Err(("Expected a value before '=='".to_string(), current_line));
+                                    }
                                 }
                             } else {
                                 if let AST::IsUnequal { left, right, line } = condition.as_ref() {
@@ -944,7 +1026,37 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                             line: *line,
                                         });
                                     } else {
-                                        return Err(("Expected a value before '!='".to_string(), current_line));
+                                        if let AST::Addition { left: addition_left, right, line } = right.as_ref() {
+                                            temp_ast.push(AST::IfStatement {
+                                                condition: Box::new(AST::IsUnequal {
+                                                    left: left.clone(),
+                                                    right: Box::new(AST::Addition {
+                                                        left: addition_left.clone(),
+                                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                        line: *line,
+                                                    }),
+                                                    line: *line,
+                                                }),
+                                                body,
+                                                line: *line,
+                                            });
+                                        } else if let AST::Subtraction { left: subtraction_left, right, line } = right.as_ref() {
+                                            temp_ast.push(AST::IfStatement {
+                                                condition: Box::new(AST::IsUnequal  {
+                                                    left: left.clone(),
+                                                    right: Box::new(AST::Subtraction {
+                                                        left: subtraction_left.clone(),
+                                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                        line: *line,
+                                                    }),
+                                                    line: *line,
+                                                }),
+                                                body,
+                                                line: *line,
+                                            });
+                                        } else {
+                                            return Err(("Expected a value before '!='".to_string(), current_line));
+                                        }
                                     }
                                 } else {
                                     temp_ast.push(AST::IfStatement {
@@ -1453,5 +1565,25 @@ mod tests {
         let result = parse("print(x)", &mut context);
 
         assert_eq!(result, Ok(())); // cause prints Null
+    }
+
+    #[test]
+    fn addition_in_if_statement() {
+        let mut context = crate::utils::create_context();
+        let left_side = parse("if 1 + 1 == 2 {\n print(\"Hello, world!\") \n}", &mut context);
+        let right_side = parse("if 3 == 1 + 2 {\n print(\"Hello, world!\") \n}", &mut context);
+
+        assert_eq!(left_side, Ok(()));
+        assert_eq!(right_side, Ok(()));
+    }
+
+    #[test]
+    fn subtraction_in_if_statement() {
+        let mut context = crate::utils::create_context();
+        let left_side = parse("if 2 - 1 == 1 {\n print(\"Hello, world!\") \n}", &mut context);
+        let right_side = parse("if 3 == 2 - 1 {\n print(\"Hello, world!\") \n}", &mut context);
+
+        assert_eq!(left_side, Ok(()));
+        assert_eq!(right_side, Ok(()));
     }
 }
