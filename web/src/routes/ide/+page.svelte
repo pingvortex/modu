@@ -67,7 +67,7 @@
                 parent: document.querySelector("#code"),
             });
         }
-    })
+    });
 
     let output = "Run the code to see the output";
     let runClicked = false;
