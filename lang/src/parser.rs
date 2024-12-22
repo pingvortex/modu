@@ -781,6 +781,22 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::Addition { left, right, line } => {
+                            temp_ast.push(AST::Addition {
+                                left,
+                                right: Box::new(AST::Null),
+                                line,
+                            });
+                        }
+
+                        AST::Subtraction { left, right, line } => {
+                            temp_ast.push(AST::Subtraction {
+                                left,
+                                right: Box::new(AST::Null),
+                                line,
+                            });
+                        }
+
                         _ => {
                             return Err((format!("Expected a number, float, string, or let declaration before '+', got {:?}", value), current_line));
                         }
@@ -861,8 +877,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::Identifer(name) => {
+                            temp_ast.push(AST::Subtraction {
+                                left: Box::new(AST::Identifer(name)),
+                                right: Box::new(AST::Null),
+                                line: current_line,
+                            });
+                        }
+
+                        AST::Subtraction { left, right, line } => {
+                            temp_ast.push(AST::Subtraction {
+                                left,
+                                right: Box::new(AST::Null),
+                                line,
+                            });
+                        }
+
+                        AST::Addition { left, right, line } => {
+                            temp_ast.push(AST::Addition {
+                                left,
+                                right: Box::new(AST::Null),
+                                line,
+                            });
+                        }
+
                         _ => {
-                            return Err((format!("Expected a number, float, or let declaration before '-', got {:?}", value), current_line));
+                            return Err((format!("Expected a number, float, let or variable declaration before '-', got {:?}", value), current_line));
                         }
                     }
                 }
