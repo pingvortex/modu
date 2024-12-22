@@ -12,14 +12,14 @@ pub fn repl() {
     
     let mut current_line = 0;
     let mut history: Vec<String> = Vec::new();
-    let mut open_function = false;
+    let mut open_functions = 0;
     let mut input = String::new();
 
     loop {
         current_line += 1;
 
-        if open_function {
-            print!("|   ");
+        if open_functions > 0 {
+            print!("|{}", " ".repeat(open_functions * 4));
         } else {
             input.clear();
 
@@ -28,19 +28,23 @@ pub fn repl() {
 
         std::io::stdout().flush().unwrap();
 
-        std::io::stdin().read_line(&mut input).unwrap();
+        let mut this_input = String::new();
+
+        std::io::stdin().read_line(&mut this_input).unwrap();
 
         history.push(input.clone());
 
-        if input.contains("{") {
-            open_function = true;
+        if this_input.contains("{") {
+            open_functions += 1;
         }
 
-        if input.contains("}") {
-            open_function = false;
+        if this_input.contains("}") {
+            open_functions -= 1;
         }
 
-        if !open_function {
+        input.push_str(&this_input);
+
+        if open_functions == 0 {
             parse(&input, context).unwrap_or_else(|e| {
                 println!("\n⚠️  {}", e.0);
                 println!("Traceback (most recent call last):");

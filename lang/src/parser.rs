@@ -12,7 +12,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     let mut ast = Vec::new();
     let mut line_map = HashMap::new();
     let mut current_line = 0;
-    let mut in_body = false;
+    let mut bodies_deep = 0;
 
     for line in input.split("\n") {
         current_line += 1;
@@ -1092,7 +1092,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 line,
                             });
 
-                            in_body = true;
+                            bodies_deep += 1;
                             body_starts = true;
                         }
 
@@ -1103,7 +1103,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 line,
                             });
 
-                            in_body = true;
+                            bodies_deep += 1;
                             body_starts = true;
                         }
 
@@ -1119,7 +1119,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         line,
                                     });
 
-                                    in_body = true;
+                                    bodies_deep += 1;
                                     body_starts = true;
                                 }
 
@@ -1134,40 +1134,38 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         _ => {
-                            return Err(("Expected a function before '{'".to_string(), current_line));
+                            return Err(("Expected a function or if statement before '{'".to_string(), current_line));
                         }
                     }
                 }
 
                 Ok(Token::RBracket) => {
-                    match temp_ast.pop().unwrap_or(AST::Null) {
+                    let value = ast.pop().unwrap_or(AST::Null);
+
+                    match value {
                         AST::Function { name, args, body, line } => {
-                            temp_ast.push(AST::Function {
+                            ast.push(AST::Function {
                                 name,
                                 args,
                                 body,
                                 line,
                             });
 
-                            in_body = false;
+                            bodies_deep -= 1;
                         }
 
                         AST::IfStatement { condition, body, line } => {
-                            temp_ast.push(AST::IfStatement {
+                            ast.push(AST::IfStatement {
                                 condition,
                                 body,
                                 line,
                             });
 
-                            in_body = false;
+                            bodies_deep -= 1;
                         }
 
                         _ => {
-                            if in_body {
-                                in_body = false;
-                            } else {
-                                return Err(("Expected a function before '}'".to_string(), current_line));
-                            }
+                            return Err(("Expected a function or if statement before '}'".to_string(), current_line));
                         }
                     }
                 }
@@ -1192,45 +1190,122 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         }
     
         if verbose {
-            println!("{:?}", ast);
+            dbg!(&temp_ast);
         }
 
-        if in_body && !body_starts {
+        if bodies_deep > 0 && (!body_starts || bodies_deep > 1) {
             let function = ast.pop().unwrap_or(AST::Null);
 
             match function {
                 AST::Function { name, args, mut body, line } => {
-                    for expr in temp_ast {
-                        body.push(expr);
-                    }
+                    let value = body.pop().unwrap_or(AST::Null);
 
-                    ast.push(AST::Function {
-                        name,
-                        args,
-                        body,
-                        line,
-                    });
+                    match value {
+                        AST::IfStatement { condition, body: mut fn_body, line } => {
+                            for expr in temp_ast {
+                                fn_body.push(expr);
+                            }
+
+                            body.push(AST::IfStatement {
+                                condition,
+                                body: fn_body,
+                                line,
+                            });
+
+                            ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            body.push(value);
+
+                            for expr in temp_ast {
+                                body.push(expr);
+                            }
+
+                            ast.push(AST::Function {
+                                name,
+                                args,
+                                body,
+                                line,
+                            });
+                        }
+                    }
                 }
 
                 AST::IfStatement { condition, mut body, line } => {
-                    for expr in temp_ast {
-                        body.push(expr);
-                    }
+                    let value = body.pop().unwrap_or(AST::Null);
 
-                    ast.push(AST::IfStatement {
-                        condition,
-                        body,
-                        line,
-                    });
+                    match value {
+                        AST::IfStatement { condition: if_condition, body: mut if_body, line } => {
+                            for expr in temp_ast {
+                                if_body.push(expr);
+                            }
+
+                            body.push(AST::IfStatement {
+                                condition: if_condition,
+                                body: if_body,
+                                line,
+                            });
+
+                            ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+                        }
+
+                        AST::Null => {
+                            for expr in temp_ast {
+                                body.push(expr);
+                            }
+
+                            ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            body.push(value);
+
+                            for expr in temp_ast {
+                                body.push(expr);
+                            }
+
+                            ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+                        }
+                    }
                 }
 
                 _ => {
-                    return Err(("Expected a function".to_string(), current_line));
+                    if bodies_deep > 0 {
+                        bodies_deep -= 1;
+                    } else {
+                        return Err(("Expected a function or if statement before '}'".to_string(), current_line));
+                    }
                 }
             }
         } else {
             ast.append(&mut temp_ast);
         }
+
+        if verbose {
+            dbg!(&ast);
+        }
+    }
+
+    if verbose {
+        dbg!(&ast);
     }
 
     for item in ast.clone() {
@@ -1283,9 +1358,11 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 }
             }
 
+            AST::Semicolon => {}
+
             _ => {
                 if verbose {
-                    println!("I'm not sure what to do with {:?}", item);
+                    println!("I'm not sure what to do with a {:?}", item);
                 }
             }
         }
