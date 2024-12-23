@@ -104,20 +104,6 @@ pub enum AST {
 
     Null,
 
-    Comma,
-
-    /*
-    
-    LParen,
-
-    RParen,
-
-    LBracket,
-
-    RBracket,
-
-    */
-
     Semicolon,
 }
 

@@ -63,3 +63,16 @@ pub fn get_object() -> HashMap<String, AST> {
 
     objects
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_object_test() {
+        let object = get_object();
+
+        assert_eq!(object.len(), 1);
+        assert_eq!(object.contains_key("div"), true);
+    }
+}

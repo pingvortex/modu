@@ -136,7 +136,15 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                 if let Some(package) = package {
                     if let AST::Object { properties, line } = package {
-                        context.insert(as_.unwrap(), AST::Object { properties, line });
+                        let insert_as = as_.unwrap();
+
+                        if insert_as == "*" {
+                            for (name, value) in properties {
+                                context.insert(name, value);
+                            }
+                        } else {
+                            context.insert(insert_as, AST::Object { properties, line });
+                        }
                     }
                 } else {
                     return Err(format!("Package {} not found", file.unwrap().replace("\"", "")));

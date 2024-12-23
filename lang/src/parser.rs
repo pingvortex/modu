@@ -135,13 +135,35 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                             temp_ast.push(AST::Import {
                                 file,
-                                as_: Some(lexer.slice().to_string()),
+                                as_: None,
                                 line,
                             });
                         }
 
                         _ => {
                             return Err(("Expected an import before 'as'".to_string(), current_line));
+                        }
+                    }
+                }
+
+                Ok(Token::Star) => {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
+                        AST::Import { file, as_, line } => {
+                            if file.is_none() {
+                                return Err(("Expected a file before '*'".to_string(), current_line));
+                            }
+
+                            temp_ast.push(AST::Import {
+                                file,
+                                as_: Some("*".to_string()),
+                                line,
+                            });
+                        }
+
+                        _ => {
+                            return Err(("Expected an import before '*'".to_string(), current_line));
                         }
                     }
                 }
@@ -861,15 +883,100 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            temp_ast.push(AST::LetDeclaration {
-                                name,
-                                value: Box::new(AST::Addition {
-                                    left: value,
+                            if let AST::Number(n) = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left: Box::new(AST::Number(n)),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::Float(f) = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left: Box::new(AST::Float(f)),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::String(s) = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left: Box::new(AST::String(s)),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::Addition { left, right, line } = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left,
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::Subtraction { left, right, line } = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Subtraction {
+                                        left,
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::Call { name: call_name, args, line } = *value {
+                                let mut new_args = args.clone();
+
+                                let last_arg = new_args.pop().unwrap_or(AST::Null);
+
+                                new_args.push(AST::Addition {
+                                    left: Box::new(last_arg),
                                     right: Box::new(AST::Null),
                                     line,
-                                }),
-                                line,
-                            });
+                                });
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Call {
+                                        name: call_name,
+                                        args: new_args,
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::PropertyCall { object, property, args, line } = *value {
+                                let mut new_args = args.clone();
+
+                                let last_arg = new_args.pop().unwrap_or(AST::Null);
+
+                                new_args.push(AST::Addition {
+                                    left: Box::new(last_arg),
+                                    right: Box::new(AST::Null),
+                                    line,
+                                });
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: new_args,
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Expected a value before '+'".to_string(), current_line));
+                            }
                         }
                         
                         AST::Call { name, mut args, line } => {
@@ -900,6 +1007,31 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
+                                AST::PropertyCall { object, property, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+
+                                    new_arg_args.push(AST::Addition {
+                                        left: Box::new(last_arg),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    });
+
+                                    args.push(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
                                 _ => {
                                     args.push(AST::Addition {
                                         left: Box::new(arg),
@@ -909,6 +1041,98 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         
                                     temp_ast.push(AST::Call {
                                         name,
+                                        args,
+                                        line,
+                                    });
+                                }
+                            }
+                        }
+
+                        AST::PropertyCall { object, property, mut args, line } => {
+                            let arg = args.pop().unwrap_or(AST::Null);
+
+                            match arg {
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+
+                                    new_arg_args.push(AST::Addition {
+                                        left: Box::new(last_arg),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    });
+
+                                    args.push(AST::Call {
+                                        name: call_name,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                AST::PropertyCall { object, property, mut args, line } => {
+                                    let arg = args.pop().unwrap_or(AST::Null);
+
+                                    match arg {
+                                        AST::Call { name: call_name, args: arg_args, line } => {
+                                            let mut new_arg_args = arg_args.clone();
+        
+                                            let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+        
+                                            new_arg_args.push(AST::Addition {
+                                                left: Box::new(last_arg),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            });
+        
+                                            args.push(AST::Call {
+                                                name: call_name,
+                                                args: new_arg_args,
+                                                line,
+                                            });
+        
+                                            temp_ast.push(AST::PropertyCall {
+                                                object,
+                                                property,
+                                                args,
+                                                line,
+                                            });
+                                        }
+        
+                                        _ => {
+                                            args.push(AST::Addition {
+                                                left: Box::new(arg),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            });
+                    
+                                            temp_ast.push(AST::PropertyCall {
+                                                object,
+                                                property,
+                                                args,
+                                                line,
+                                            });
+                                        }
+                                    }
+                                }
+
+                                _ => {
+                                    args.push(AST::Addition {
+                                        left: Box::new(arg),
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    });
+        
+                                    temp_ast.push(AST::PropertyCall {
+                                        object,
+                                        property,
                                         args,
                                         line,
                                     });
@@ -1129,21 +1353,31 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         AST::Call { name, mut args, line } => {
                             let arg = args.pop().unwrap_or(AST::Null);
 
-                            match arg {
+                            match arg.clone() {
                                 AST::Addition { left, right, line } => {
-                                    args.push(AST::Addition {
-                                        left,
-                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
-                                        line,
-                                    });
+                                    if AST::Null == *right {
+                                        args.push(AST::Addition {
+                                            left,
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    } else {
+                                        args.push(arg);
+                                        args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                    }
                                 }
 
                                 AST::Subtraction { left, right, line } => {
-                                    args.push(AST::Subtraction {
-                                        left,
-                                        right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
-                                        line,
-                                    });
+                                    if AST::Null == *right {
+                                        args.push(AST::Subtraction {
+                                            left,
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    } else {
+                                        args.push(arg);
+                                        args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                    }
                                 }
 
                                 AST::Call { name: call_name, args: arg_args, line } => {
@@ -1151,24 +1385,39 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                                     let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
 
-                                    match last_arg {
+                                    match last_arg.clone() {
                                         AST::Addition { left, right, line } => {
-                                            new_arg_args.push(AST::Addition {
-                                                left,
-                                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
-                                                line,
-                                            });
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Addition {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
                                         }
 
                                         AST::Subtraction { left, right, line } => {
-                                            new_arg_args.push(AST::Subtraction {
-                                                left,
-                                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
-                                                line,
-                                            });
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Null => {
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
                                         }
 
                                         _ => {
+                                            new_arg_args.push(last_arg);
                                             new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
                                         }
                                     }
@@ -1182,7 +1431,45 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                                 AST::PropertyCall { object, property, args: arg_args, line } => {
                                     let mut new_arg_args = arg_args.clone();
-                                    new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+
+                                    match last_arg.clone() {
+                                        AST::Addition { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Addition {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Subtraction { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Null => {
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+
+                                        _ => {
+                                            new_arg_args.push(last_arg);
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
 
                                     args.push(AST::PropertyCall {
                                         object,
@@ -1204,10 +1491,139 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::PropertyCall { object, property, args, line } => {
-                            let mut args = args.clone();
+                        AST::PropertyCall { object, property, mut args, line } => {
+                            let arg = args.pop().unwrap_or(AST::Null);
 
-                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+                            match arg.clone() {
+                                AST::Addition { left, right, line } => {
+                                    if AST::Null == *right {
+                                        args.push(AST::Addition {
+                                            left,
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    } else {
+                                        args.push(arg);
+                                        args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                    }
+                                }
+
+                                AST::Subtraction { left, right, line } => {
+                                    if AST::Null == *right {
+                                        args.push(AST::Subtraction {
+                                            left,
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    } else {
+                                        args.push(arg);
+                                        args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                    }
+                                }
+
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+
+                                    match last_arg.clone() {
+                                        AST::Addition { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Addition {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Subtraction { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Null => {
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+
+                                        _ => {
+                                            new_arg_args.push(last_arg);
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    args.push(AST::Call {
+                                        name: call_name,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+                                }
+
+                                AST::PropertyCall { object, property, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+
+                                    match last_arg.clone() {
+                                        AST::Addition { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Addition {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Subtraction { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Null => {
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+
+                                        _ => {
+                                            new_arg_args.push(last_arg);
+                                            new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    args.push(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                }
+                            }
 
                             temp_ast.push(AST::PropertyCall {
                                 object,
@@ -1240,13 +1656,49 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         line,
                                     }
                                 );
-                            } else if let AST::Call { name: call_name, args, line } = *value {
-                                let mut args = args.clone();
+                            } else if let AST::Call { name: call_name, mut args, line } = *value {
+                                let last_arg = args.pop().unwrap_or(AST::Null);
 
-                                args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                match last_arg.clone() {
+                                    AST::Addition { left, right, line } => {
+                                        if let AST::Null = *right {
+                                            args.push(AST::Addition {
+                                                left,
+                                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(last_arg);
+                                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Subtraction { left, right, line } => {
+                                        args.push(AST::Subtraction {
+                                            left,
+                                            right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    }
+
+                                    AST::Call { name: call_name, args: arg_args, line } => {
+                                        let mut new_arg_args = arg_args.clone();
+                                        new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                        args.push(AST::Call {
+                                            name: call_name,
+                                            args: new_arg_args,
+                                            line,
+                                        });
+                                    }
+
+                                    _ => {
+                                        args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                    }
+                                }
 
                                 temp_ast.push(AST::LetDeclaration {
-                                    name: name,
+                                    name,
                                     value: Box::new(AST::Call {
                                         name: call_name,
                                         args,
@@ -1254,13 +1706,54 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }),
                                     line,
                                 });
-                            } else if let AST::PropertyCall { object, property, args, line } = *value {
-                                let mut args = args.clone();
+                            } else if let AST::PropertyCall { object, property, mut args, line } = *value {
+                                let last_arg = args.pop().unwrap_or(AST::Null);
 
-                                args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                match last_arg.clone() {
+                                    AST::Addition { left, right, line } => {
+                                        if let AST::Null = *right {
+                                            args.push(AST::Addition {
+                                                left,
+                                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(last_arg);
+                                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Subtraction { left, right, line } => {
+                                        if let AST::Null = *right {
+                                            args.push(AST::Subtraction {
+                                                left,
+                                                right: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(last_arg);
+                                            args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Call { name: call_name, args: arg_args, line } => {
+                                        let mut new_arg_args = arg_args.clone();
+                                        new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                        args.push(AST::Call {
+                                            name: call_name,
+                                            args: new_arg_args,
+                                            line,
+                                        });
+                                    }
+
+                                    _ => {
+                                        args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                    }
+                                }
 
                                 temp_ast.push(AST::LetDeclaration {
-                                    name: name,
+                                    name,
                                     value: Box::new(AST::PropertyCall {
                                         object,
                                         property,
@@ -1570,29 +2063,127 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         AST::Call { name, mut args, line } => {
                             let arg = args.pop().unwrap_or(AST::Null);
 
-                            match arg {
+                            match arg.clone() {
                                 AST::Addition { left, right, line } => {
-                                    args.push(AST::Addition {
-                                        left,
-                                        right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                        line,
-                                    });
+                                    if AST::Null == *right {
+                                        args.push(AST::Addition {
+                                            left,
+                                            right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    } else {
+                                        args.push(arg);
+                                        args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                    }
                                 }
 
                                 AST::Subtraction { left, right, line } => {
-                                    args.push(AST::Subtraction {
-                                        left,
-                                        right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                    if AST::Null == *right {
+                                        args.push(AST::Subtraction {
+                                            left,
+                                            right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                            line,
+                                        });
+                                    } else {
+                                        args.push(arg);
+                                        args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                    }
+                                }
+
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+
+                                    match last_arg.clone() {
+                                        AST::Addition { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Addition {
+                                                    left,
+                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Subtraction { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Null => {
+                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+
+                                        _ => {
+                                            new_arg_args.push(last_arg);
+                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    args.push(AST::Call {
+                                        name: call_name,
+                                        args: new_arg_args,
                                         line,
                                     });
                                 }
 
-                                AST::Call { name, args: arg_args, line } => {
+                                AST::PropertyCall { object, property, args: arg_args, line } => {
                                     let mut new_arg_args = arg_args.clone();
-                                    new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                    
+                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
 
-                                    args.push(AST::Call {
-                                        name,
+                                    match last_arg.clone() {
+                                        AST::Addition { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Addition {
+                                                    left,
+                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Subtraction { left, right, line } => {
+                                            if AST::Null == *right {
+                                                new_arg_args.push(AST::Subtraction {
+                                                    left,
+                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                    line,
+                                                });
+                                            } else {
+                                                new_arg_args.push(last_arg);
+                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                            }
+                                        }
+
+                                        AST::Null => {
+                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+
+                                        _ => {
+                                            new_arg_args.push(last_arg);
+                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    args.push(AST::PropertyCall {
+                                        object,
+                                        property,
                                         args: new_arg_args,
                                         line,
                                     });
@@ -1634,6 +2225,129 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }),
                                     line,
                                 });
+                            } else if let AST::Subtraction { left, right, line } = *value {
+                                temp_ast.push(
+                                    AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::Subtraction {
+                                            left,
+                                            right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                            line,
+                                        }),
+                                        line,
+                                    }
+                                );
+                            } else if let AST::Call { name: call_name, mut args, line } = *value {
+                                let arg = args.pop().unwrap_or(AST::Null);
+
+                                match arg.clone() {
+                                    AST::Addition { left, right, line } => {
+                                        if AST::Null == *right {
+                                            args.push(AST::Addition {
+                                                left,
+                                                right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(arg);
+                                            args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Subtraction { left, right, line } => {
+                                        if AST::Null == *right {
+                                            args.push(AST::Subtraction {
+                                                left,
+                                                right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(arg);
+                                            args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Call { name: call_name, args: arg_args, line } => {
+                                        let mut new_arg_args = arg_args.clone();
+                                        new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+
+                                        args.push(AST::Call {
+                                            name: call_name,
+                                            args: new_arg_args,
+                                            line,
+                                        });
+                                    }
+
+                                    _ => {
+                                        args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                    }
+                                }
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Call {
+                                        name: call_name,
+                                        args,
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::PropertyCall { object, property, mut args, line } = *value {
+                                let arg = args.pop().unwrap_or(AST::Null);
+
+                                match arg.clone() {
+                                    AST::Addition { left, right, line } => {
+                                        if AST::Null == *right {
+                                            args.push(AST::Addition {
+                                                left,
+                                                right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(arg);
+                                            args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Subtraction { left, right, line } => {
+                                        if AST::Null == *right {
+                                            args.push(AST::Subtraction {
+                                                left,
+                                                right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                                line,
+                                            });
+                                        } else {
+                                            args.push(arg);
+                                            args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                        }
+                                    }
+
+                                    AST::Call { name: call_name, args: arg_args, line } => {
+                                        let mut new_arg_args = arg_args.clone();
+                                        new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+
+                                        args.push(AST::Call {
+                                            name: call_name,
+                                            args: new_arg_args,
+                                            line,
+                                        });
+                                    }
+
+                                    _ => {
+                                        args.push(AST::Float(lexer.slice().parse().unwrap()));
+                                    }
+                                }
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args,
+                                        line,
+                                    }),
+                                    line,
+                                });
                             } else {
                                 temp_ast.push(AST::LetDeclaration {
                                     name,
@@ -1662,6 +2376,26 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             } else {
                                 return Err(("Unexpected float after 'return'".to_string(), current_line));
                             }
+                        }
+
+                        AST::Addition { left, right, line } => {
+                            if let AST::Null = *right {
+                                temp_ast.push(AST::Addition {
+                                    left,
+                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Expected a value before '+'".to_string(), current_line));
+                            }
+                        }
+
+                        AST::Subtraction { left, right, line } => {
+                            temp_ast.push(AST::Subtraction {
+                                left,
+                                right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                line,
+                            });
                         }
 
                         _ => {

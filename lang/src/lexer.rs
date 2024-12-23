@@ -82,6 +82,9 @@ pub enum Token {
 
     #[token("!=")]
     IsUnequal,
+
+    #[token("*")]
+    Star,
 }
 
 #[cfg(test)]
