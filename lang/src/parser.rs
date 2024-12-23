@@ -488,11 +488,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     
                 Ok(Token::Assign) => {
                     if let Some(AST::LetDeclaration { name, value, line }) = temp_ast.pop() {                    
-                        temp_ast.push(AST::LetDeclaration {
-                            name,
-                            value: Box::new(AST::Null),
-                            line,
-                        });
+                        if AST::Null == *value {
+                            temp_ast.push(AST::LetDeclaration {
+                                name,
+                                value: Box::new(AST::Null),
+                                line,
+                            });
+                        } else {
+                            return Err(("Unexpected '='".to_string(), current_line));
+                        }
                     } else {
                         return Err(("Expected a let declaration before '='".to_string(), current_line));
                     }

@@ -56,7 +56,6 @@ pub enum AST {
         name: String,
         args: Vec<String>,
         call_fn: fn(Vec<AST>, &mut HashMap<String, AST>) -> Result<AST, String>,
-        line: usize,
     },
 
     Exists {

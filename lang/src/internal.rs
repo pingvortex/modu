@@ -7,9 +7,9 @@ use crate::eval::eval;
 
 pub fn print(ast: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     match eval(ast[0].clone(), context) {
-        Ok(AST) => {
-            println!("{}", AST);
-            return Ok(AST);
+        Ok(ast) => {
+            println!("{}", ast);
+            return Ok(ast);
         }
 
         Err(e) => {

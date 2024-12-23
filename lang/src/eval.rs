@@ -29,7 +29,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                     }
                                 }
 
-                                AST::InternalFunction { name: _, args: f_args, call_fn, line: _ } => {
+                                AST::InternalFunction { name: _, args: f_args, call_fn } => {
                                     if args.len() == f_args.len() {
                                         return call_fn(args, context);
                                     } else {

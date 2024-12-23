@@ -17,8 +17,7 @@ pub fn create_context() -> HashMap<String, AST> {
         AST::InternalFunction { 
             name: "print".to_string(), 
             args: vec!["value".to_string()], 
-            call_fn: crate::internal::print, 
-            line: 0 
+            call_fn: crate::internal::print
         }
     );
 
@@ -27,8 +26,7 @@ pub fn create_context() -> HashMap<String, AST> {
         AST::InternalFunction { 
             name: "exit".to_string(), 
             args: vec![], 
-            call_fn: crate::internal::exit, 
-            line: 0 
+            call_fn: crate::internal::exit,
         }
     );
     
