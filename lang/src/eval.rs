@@ -2,6 +2,7 @@ use crate::ast::AST;
 
 use std::{collections::HashMap, path::PathBuf};
 use crate::utils;
+use crate::packages::get_package;
 
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     let mut depth = 0;
@@ -22,6 +23,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         }
 
                                         for expr in body {
+                                            if let AST::Return { value, line: _ } = expr {
+                                                return eval(*value.clone(), &mut new_context);
+                                            }
+
                                             eval(expr.clone(), &mut new_context)?;
                                         }
                                     } else {
@@ -93,39 +98,50 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             let path: PathBuf;
 
             if args.len() > 2 {
-                path = std::path::Path::new(&args[2]).parent().unwrap().join(file.unwrap().replace("\"", ""));
+                path = std::path::Path::new(&args[2]).parent().unwrap().join(file.clone().unwrap().replace("\"", ""));
             } else {
-                path = file.unwrap().replace("\"", "").into();
+                path = file.clone().unwrap().replace("\"", "").into();
             }
 
-            match std::fs::read_to_string(&path) {
-                Ok(file) => {
-                    let mut new_context = context.clone();
-
-                    match crate::parser::parse(&file, &mut new_context) {
-                        Ok(_) => {
-                            let mut properties = crate::utils::create_context();
-
-                            for (name, value) in new_context {
-                                properties.insert(name, value);
+            if path.ends_with(".modu") {
+                match std::fs::read_to_string(&path) {
+                    Ok(file) => {
+                        let mut new_context = context.clone();
+    
+                        match crate::parser::parse(&file, &mut new_context) {
+                            Ok(_) => {
+                                let mut properties = crate::utils::create_context();
+    
+                                for (name, value) in new_context {
+                                    properties.insert(name, value);
+                                }
+    
+                                context.insert(as_.unwrap(), AST::Object { properties, line });
                             }
-
-                            context.insert(as_.unwrap(), AST::Object { properties, line });
-                        }
-
-                        Err(e) => {
-                            return Err(e.0);
+    
+                            Err(e) => {
+                                return Err(e.0);
+                            }
                         }
                     }
+    
+                    Err(e) => {
+                        dbg!(path);
+    
+                        return Err(e.to_string());
+                    }
                 }
+            } else {
+                let package = get_package(&file.clone().unwrap().replace("\"", ""));
 
-                Err(e) => {
-                    dbg!(path);
-
-                    return Err(e.to_string());
+                if let Some(package) = package {
+                    if let AST::Object { properties, line } = package {
+                        context.insert(as_.unwrap(), AST::Object { properties, line });
+                    }
+                } else {
+                    return Err(format!("Package {} not found", file.unwrap().replace("\"", "")));
                 }
             }
-            
         }
 
         AST::PropertyCall { object, property, args, line } => {
@@ -154,8 +170,16 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                                     }
                                                 }
 
+                                                AST::InternalFunction { name, args: f_args, call_fn } => {
+                                                    if args.len() == f_args.len() {
+                                                        return call_fn(args, context);
+                                                    } else {
+                                                        return Err(format!("{} takes {} arguments", name, f_args.len()));
+                                                    }
+                                                }
+
                                                 _ => {
-                                                    return Err(format!("{} of {} is not a function", property.as_ref().unwrap(), name));
+                                                    return Err(format!("{} on object {} is not a function", property.as_ref().unwrap(), name));
                                                 }
                                             }
                                         }
@@ -390,9 +414,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
         }
     }
 
-    unsafe {
-        depth -= 1;
-    }
+    depth -= 1;
 
     Ok(AST::Null)
 }

@@ -1,0 +1,8 @@
+fn add_five(a) {
+    let b = a + 5;
+    return b;
+    print("oh nyo")
+}
+
+let a = add_five(5);
+print(a);

@@ -280,7 +280,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }
 
                                     _ => {
-                                        return Err(("Expected an identifier before '.'".to_string(), current_line));
+                                        return Err((format!("Unexpected {:?} before '.'", arg), current_line));
                                     }
                                 }
 
@@ -292,14 +292,31 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
+                        AST::LetDeclaration { name, value, line } => {
+                            if let AST::Identifer(ident_name) = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::PropertyAccess {
+                                        object: Some(ident_name),
+                                        property: None,
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Expected an identifier before '.' in a let decleration".to_string(), current_line));
+                            }
+                        }
+
                         _ => {
-                            return Err(("Expected an identifier before '.'".to_string(), current_line));
+                            return Err((format!("Unexpected {:?} before '.'", value), current_line));
                         }
                     }
                 }
     
                 Ok(Token::Identifer) => {
                     let value = temp_ast.pop().unwrap_or(AST::Null);
+                    
                     match value {
                         AST::Import { file, as_, line } => {
                             temp_ast.push(AST::Import {
@@ -334,20 +351,28 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                             }),
                                             line,
                                         });
-                                    } else {
-                                        if let AST::Subtraction { left, right, line } = *value {
-                                            temp_ast.push(AST::LetDeclaration {
-                                                name,
-                                                value: Box::new(AST::Subtraction {
-                                                    left,
-                                                    right: Box::new(AST::Identifer(lexer.slice().to_string())),
-                                                    line,
-                                                }),
+                                    } else if let AST::Subtraction { left, right, line } = *value {
+                                        temp_ast.push(AST::LetDeclaration {
+                                            name,
+                                            value: Box::new(AST::Subtraction {
+                                                left,
+                                                right: Box::new(AST::Identifer(lexer.slice().to_string())),
                                                 line,
-                                            });
-                                        } else {
-                                            return Err((format!("Unexpected identifier '{}'", lexer.slice()), current_line));
-                                        }
+                                            }),
+                                            line,
+                                        });
+                                    } else if let AST::PropertyAccess { object, property, line } = *value {
+                                        temp_ast.push(AST::LetDeclaration {
+                                            name,
+                                            value: Box::new(AST::PropertyAccess {
+                                                object,
+                                                property: Some(lexer.slice().to_string()),
+                                                line,
+                                            }),
+                                            line,
+                                        });
+                                    } else {
+                                        return Err((format!("Unexpected identifier '{}'", lexer.slice()), current_line));
                                     }
                                 }
                             }
@@ -480,7 +505,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
+                        AST::Return { value, line } => {
+                            if let AST::Null = *value {
+                                temp_ast.push(AST::Return {
+                                    value: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Unexpected identifier after 'return'".to_string(), current_line));
+                            }
+                        }
+
                         _ => {
+                            temp_ast.push(value);
                             temp_ast.push(AST::Identifer(lexer.slice().to_string()));
                         }
                     }
@@ -507,8 +544,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                     match value {
                         AST::Call { name, mut args, line } => {
-                            args.push(AST::Comma);
-
                             temp_ast.push(AST::Call {
                                 name,
                                 args,
@@ -517,8 +552,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::PropertyCall { object, property, mut args, line } => {
-                            args.push(AST::Comma);
-
                             temp_ast.push(AST::PropertyCall {
                                 object,
                                 property,
@@ -536,14 +569,24 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
+                                name,
+                                value,
+                                line,
+                            });
+                        }
+
                         _ => {
-                            return Err(("Expected a call or property call before ','".to_string(), current_line));
+                            return Err((format!("Unexpected ',' after {:?}", value), current_line));
                         }
                     }
                 }
     
                 Ok(Token::LParen) => {
-                    match temp_ast.pop().unwrap_or(AST::Null) {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
                         AST::Identifer(name) => {
                             temp_ast.push(AST::Call {
                                 name,
@@ -570,8 +613,72 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::LetDeclaration { name, value, line } => {
+                            if let AST::Identifer(ident_name) = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::Call {
+                                        name: ident_name,
+                                        args: Vec::new(),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::PropertyAccess { object, property, line } = *value {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: Vec::new(),
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                return Err((format!("Expected an identifier before '()' in a let declaration, got {:?}", value), current_line));
+                            }
+                        }
+
+                        AST::Call { name, mut args, line } => {
+                            let last_arg = args.pop();
+
+                            match last_arg {
+                                Some(AST::Identifer(ident_name)) => {
+                                    args.push(AST::Call {
+                                        name: ident_name,
+                                        args: Vec::new(),
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                Some(AST::PropertyAccess { object, property, line }) => {
+                                    args.push(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: Vec::new(),
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                _ => return Err(("Expected an identifier before '()' in a function call".to_string(), current_line)),
+                            }
+                        }
+
                         _ => {
-                            return Err(("Expected an identifier before '()'".to_string(), current_line));
+                            return Err((format!("Unexpected '()' after {:?}", value), current_line));
                         }
                     }
                 }
@@ -608,6 +715,17 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     args.push(AST::Subtraction {
                                         left,
                                         right: Box::new(AST::String(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+                                    new_arg_args.push(AST::String(lexer.slice().to_string()));
+
+                                    args.push(AST::Call {
+                                        name: call_name,
+                                        args: new_arg_args,
                                         line,
                                     });
                                 }
@@ -694,6 +812,17 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         
                                     temp_ast.push(AST::String(lexer.slice().to_string()));
                                 }
+                            }
+                        }
+
+                        AST::Return { value, line } => {
+                            if let AST::Null = *value {
+                                temp_ast.push(AST::Return {
+                                    value: Box::new(AST::String(lexer.slice().to_string())),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Unexpected string after 'return'".to_string(), current_line));
                             }
                         }
 
@@ -935,6 +1064,29 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+                                    new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                    args.push(AST::Call {
+                                        name: call_name,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+                                }
+
+                                AST::PropertyCall { object, property, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+                                    new_arg_args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                    args.push(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+                                }
+
                                 _ => {
                                     args.push(AST::Number(lexer.slice().parse().unwrap()));
                                 }
@@ -971,9 +1123,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }),
                                     line,
                                 });
-                            } else {
-                                if let AST::Subtraction { left, right, line } = *value {
-                                    temp_ast.push(AST::LetDeclaration {
+                            } else if let AST::Subtraction { left, right, line } = *value {
+                                temp_ast.push(
+                                    AST::LetDeclaration {
                                         name,
                                         value: Box::new(AST::Subtraction {
                                             left,
@@ -981,14 +1133,43 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                             line,
                                         }),
                                         line,
-                                    });
-                                } else {
-                                    temp_ast.push(AST::LetDeclaration {
-                                        name,
-                                        value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                    }
+                                );
+                            } else if let AST::Call { name: call_name, args, line } = *value {
+                                let mut args = args.clone();
+
+                                args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::Call {
+                                        name: call_name,
+                                        args,
                                         line,
-                                    });
-                                }
+                                    }),
+                                    line,
+                                });
+                            } else if let AST::PropertyCall { object, property, args, line } = *value {
+                                let mut args = args.clone();
+
+                                args.push(AST::Number(lexer.slice().parse().unwrap()));
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name: name,
+                                    value: Box::new(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args,
+                                        line,
+                                    }),
+                                    line,
+                                });
+                            } else {
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                    line,
+                                });
                             }
                         }
 
@@ -1114,8 +1295,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
+                        AST::Return { value, line } => {
+                            if let AST::Null = *value {
+                                temp_ast.push(AST::Return {
+                                    value: Box::new(AST::Number(lexer.slice().parse().unwrap())),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Unexpected number after 'return'".to_string(), current_line));
+                            }
+                        }
+
                         _ => {
-                            return Err(("Expected a call or let declaration before a number".to_string(), current_line));
+                            return Err((format!("Expected a call or let declaration before a number, got {:?}", value), current_line));
                         }
                     }
                 }
@@ -1125,13 +1317,36 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                     match value {
                         AST::Call { name, mut args, line } => {
-                            args.push(AST::Boolean(lexer.slice() == "true"));
+                            let last_arg = args.pop().unwrap_or(AST::Null);
 
-                            temp_ast.push(AST::Call {
-                                name,
-                                args,
-                                line,
-                            });
+                            match last_arg {
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+                                    new_arg_args.push(AST::Boolean(lexer.slice() == "true"));
+
+                                    args.push(AST::Call {
+                                        name: call_name,
+                                        args: new_arg_args,
+                                        line,
+                                    });
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    args.push(AST::Boolean(lexer.slice() == "true"));
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+                            }
                         }
 
                         AST::PropertyCall { object, property, args, line } => {
@@ -1197,10 +1412,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
+                        AST::Return { value, line } => {
+                            if let AST::Null = *value {
+                                temp_ast.push(AST::Return {
+                                    value: Box::new(AST::Boolean(lexer.slice() == "true")),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Unexpected boolean after 'return'".to_string(), current_line));
+                            }
+                        }
+
                         _ => {
                             return Err(("Expected a call or let declaration before a boolean".to_string(), current_line));
                         }
                     }
+                }
+
+                Ok(Token::Return) => {
+                    if bodies_deep == 0 {
+                        return Err(("Unexpected return statement".to_string(), current_line));
+                    }
+
+                    temp_ast.push(AST::Return {
+                        value: Box::new(AST::Null),
+                        line: current_line,
+                    });
                 }
     
                 Ok(Token::Float) => {
@@ -1223,6 +1460,17 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     args.push(AST::Subtraction {
                                         left,
                                         right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                        line,
+                                    });
+                                }
+
+                                AST::Call { name, args: arg_args, line } => {
+                                    let mut new_arg_args = arg_args.clone();
+                                    new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
+
+                                    args.push(AST::Call {
+                                        name,
+                                        args: new_arg_args,
                                         line,
                                     });
                                 }
@@ -1282,6 +1530,17 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             temp_ast.push(AST::Float(lexer.slice().parse().unwrap()));
                         }
 
+                        AST::Return { value, line } => {
+                            if let AST::Null = *value {
+                                temp_ast.push(AST::Return {
+                                    value: Box::new(AST::Float(lexer.slice().parse().unwrap())),
+                                    line,
+                                });
+                            } else {
+                                return Err(("Unexpected float after 'return'".to_string(), current_line));
+                            }
+                        }
+
                         _ => {
                             return Err(("Expected a call or let declaration before a float".to_string(), current_line));
                         }
@@ -1289,7 +1548,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 }
     
                 Ok(Token::RParen) => {
-                    match temp_ast.pop().unwrap_or(AST::Null) {
+                    let value = temp_ast.pop().unwrap_or(AST::Null);
+
+                    match value {
                         AST::Call { name, args, line } => {
                             temp_ast.push(AST::Call {
                                 name,
@@ -1316,8 +1577,16 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
+                        AST::LetDeclaration { name, value, line } => {
+                            temp_ast.push(AST::LetDeclaration {
+                                name,
+                                value,
+                                line,
+                            });
+                        }
+
                         _ => {
-                            return Err((format!("Expected a call or property call before ')', got {:?}", temp_ast.pop().unwrap_or(AST::Null)), current_line));
+                            return Err((format!("Expected a call or property call before ')', got {:?}", value), current_line));
                         }
                     }
                 }
@@ -1503,6 +1772,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             }
 
             AST::Semicolon => {}
+            AST::Null => {}
 
             _ => {
                 if verbose {

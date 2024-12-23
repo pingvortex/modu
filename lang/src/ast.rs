@@ -1,5 +1,5 @@
 
-use std::{collections::HashMap, fmt::write};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum AST {
@@ -49,6 +49,11 @@ pub enum AST {
         name: String,
         args: Vec<String>,
         body: Vec<AST>,
+        line: usize,
+    },
+
+    Return {
+        value: Box<AST>,
         line: usize,
     },
 

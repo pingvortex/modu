@@ -1,0 +1,5 @@
+// Todo: implement more stuff
+
+import "math" as math;
+
+print(math.div(1, 3));

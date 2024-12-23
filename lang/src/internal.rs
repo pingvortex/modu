@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use crate::ast::AST;
 use crate::eval::eval;
 
-pub fn print(ast: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
-    match eval(ast[0].clone(), context) {
+pub fn print(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    match eval(args[0].clone(), context) {
         Ok(ast) => {
             println!("{}", ast);
             return Ok(ast);

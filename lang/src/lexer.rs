@@ -23,6 +23,9 @@ pub enum Token {
     #[token("import")]
     Import,
 
+    #[token("return")]
+    Return,
+
     #[token("as")]
     As,
 
