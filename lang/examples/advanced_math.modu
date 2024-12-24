@@ -35,3 +35,4 @@ print("ceil(1.5) = ", ceil(1.5);
 print("floor(1.5) = ", floor(1.5));
 print("random() = ", random());
 print("random_int() = ", random_int());
+print("PI = ", PI);

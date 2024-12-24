@@ -246,7 +246,7 @@ pub fn get_object() -> HashMap<String, AST> {
     );
 
     objects.insert(
-        "pi".to_string(),
+        "PI".to_string(),
         AST::Float(std::f64::consts::PI)
     );
 
@@ -354,7 +354,7 @@ mod tests {
     fn pi_test() {
         let object = get_object();
 
-        match object.get("pi").unwrap() {
+        match object.get("PI").unwrap() {
             AST::Float(a) => {
                 assert_eq!(a, &std::f64::consts::PI);
             }
