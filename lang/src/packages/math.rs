@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use rand;
 
 use crate::ast::AST;
 use crate::eval::eval;
@@ -161,6 +162,14 @@ pub fn ceil(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String>
     }
 }
 
+pub fn random(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+    return Ok(AST::Float(rand::random()));
+}
+
+pub fn random_int(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+    return Ok(AST::Number(rand::random()));
+}
+
 pub fn get_object() -> HashMap<String, AST> {
     let mut objects = HashMap::new();
 
@@ -219,6 +228,24 @@ pub fn get_object() -> HashMap<String, AST> {
     );
 
     objects.insert(
+        "random".to_string(),
+        AST::InternalFunction {
+            name: "random".to_string(),
+            args: vec![],
+            call_fn: random,
+        }
+    );
+
+    objects.insert(
+        "random_int".to_string(),
+        AST::InternalFunction {
+            name: "random_int".to_string(),
+            args: vec![],
+            call_fn: random_int,
+        }
+    );
+
+    objects.insert(
         "pi".to_string(),
         AST::Float(std::f64::consts::PI)
     );
@@ -236,7 +263,7 @@ mod tests {
     fn get_object_test() {
         let object = get_object();
 
-        assert_eq!(object.len(), 7);
+        assert_eq!(object.len(), 9);
         assert_eq!(object.contains_key("div"), true);
     }
 

@@ -28,8 +28,10 @@ print("div(1.5 + 1.5, 3.0 + 0.0) = ", div(1.5 + 1.5, 3.0 + 0.0));
 
 print("\nTest other math functions\n");
 
-let a = abs(-5); print("abs(-5) = ", a);
-let b = pow(2, 3); print("pow(2, 3) = ", b);
-let c = sqrt(9); print("sqrt(9) = ", c);
-let d = ceil(1.5); print("ceil(1.5) = ", d);
-let e = floor(1.5); print("floor(1.5) = ", e);
+print("abs(-5) = ", abs(-5));
+print("pow(2, 3) = ", pow(2, 3));
+print("sqrt(9) = ", sqrt(9));
+print("ceil(1.5) = ", ceil(1.5);
+print("floor(1.5) = ", floor(1.5));
+print("random() = ", random());
+print("random_int() = ", random_int());
