@@ -92,31 +92,36 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             return Ok(AST::Null);
         }
 
-        AST::Import { file, as_, line } => {
+        AST::Import { mut file, as_, line } => {
             let args = std::env::args().collect::<Vec<String>>();
+            let file = file.unwrap().replace("\"", "");
 
             let path: PathBuf;
 
             if args.len() > 2 {
-                path = std::path::Path::new(&args[2]).parent().unwrap().join(file.clone().unwrap().replace("\"", ""));
+                path = std::path::Path::new(&args[2]).parent().unwrap().join(&file);
             } else {
-                path = file.clone().unwrap().replace("\"", "").into();
+                path = file.clone().into();
             }
 
-            if path.ends_with(".modu") {
+            if file.ends_with(".modu") {
                 match std::fs::read_to_string(&path) {
                     Ok(file) => {
                         let mut new_context = context.clone();
     
                         match crate::parser::parse(&file, &mut new_context) {
                             Ok(_) => {
-                                let mut properties = crate::utils::create_context();
+                                let insert_as = as_.unwrap();
+
+                                if insert_as == "*" {
+                                    for (name, value) in new_context {
+                                        context.insert(name, value);
+                                    }
     
-                                for (name, value) in new_context {
-                                    properties.insert(name, value);
+                                    return Ok(AST::Null);
+                                } else {
+                                    context.insert(insert_as, AST::Object { properties: new_context, line });
                                 }
-    
-                                context.insert(as_.unwrap(), AST::Object { properties, line });
                             }
     
                             Err(e) => {
@@ -132,7 +137,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                     }
                 }
             } else {
-                let package = get_package(&file.clone().unwrap().replace("\"", ""));
+                let package = get_package(&file);
 
                 if let Some(package) = package {
                     if let AST::Object { properties, line } = package {
@@ -147,7 +152,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                         }
                     }
                 } else {
-                    return Err(format!("Package {} not found", file.unwrap().replace("\"", "")));
+                    return Err(format!("Package {} not found", file));
                 }
             }
         }
