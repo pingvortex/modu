@@ -22,6 +22,15 @@ pub fn create_context() -> HashMap<String, AST> {
     );
 
     context.insert(
+        "input".to_string(),
+        AST::InternalFunction {
+            name: "input".to_string(),
+            args: vec!["__args__".to_string()], 
+            call_fn: crate::internal::input,
+        }
+    );
+
+    context.insert(
         "exit".to_string(), 
         AST::InternalFunction { 
             name: "exit".to_string(), 
@@ -43,6 +52,7 @@ mod tests {
         assert_eq!(is_reserved("fn"), true);
         assert_eq!(is_reserved("import"), true);
         assert_eq!(is_reserved("if"), true);
+        assert_eq!(is_reserved("null"), true);
         assert_eq!(is_reserved("potato"), false);
     }
 
@@ -50,8 +60,9 @@ mod tests {
     fn create_context_test() {
         let context = create_context();
 
-        assert_eq!(context.len(), 2);
+        assert_eq!(context.len(), 3);
         assert_eq!(context.contains_key("print"), true);
         assert_eq!(context.contains_key("exit"), true);
+        assert_eq!(context.contains_key("input"), true);
     }
 }

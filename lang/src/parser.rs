@@ -766,7 +766,12 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
+                                AST::Null => {
+                                    args.push(AST::String(lexer.slice().to_string()));
+                                }
+
                                 _ => {
+                                    args.push(arg);
                                     args.push(AST::String(lexer.slice().to_string()));
                                 }
                             }
@@ -790,22 +795,60 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            if let AST::Addition { left, right, line } = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Addition {
-                                        left,
-                                        right: Box::new(AST::String(lexer.slice().to_string())),
+                            let val = *value;
+
+                            match val {
+                                AST::Addition { left, right, line } => {
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::Addition {
+                                            left,
+                                            right: Box::new(AST::String(lexer.slice().to_string())),
+                                            line,
+                                        }),
                                         line,
-                                    }),
-                                    line,
-                                });
-                            } else {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::String(lexer.slice().to_string())),
-                                    line,
-                                });
+                                    });
+                                }
+
+                                AST::Call { name: call_name, args, line } => {
+                                    let mut new_args = args.clone();
+                                    new_args.push(AST::String(lexer.slice().to_string()));
+
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::Call {
+                                            name: call_name,
+                                            args: new_args,
+                                            line,
+                                        }),
+                                        line,
+                                    });
+                                }
+
+                                AST::PropertyCall { object, property, args, line } => {
+                                    let mut new_args = args.clone();
+                                    new_args.push(AST::String(lexer.slice().to_string()));
+
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::PropertyCall {
+                                            object,
+                                            property,
+                                            args: new_args,
+                                            line,
+                                        }),
+                                        line,
+                                    });
+                                }
+                                
+
+                                _ => {
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::String(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
                             }
                         }
 
