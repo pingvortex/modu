@@ -50,6 +50,30 @@ pub fn div(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
     }
 }
 
+pub fn mul(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+    match (eval(args[0].clone(), &mut HashMap::new()), eval(args[1].clone(), &mut HashMap::new())) {
+        (Ok(AST::Number(a)), Ok(AST::Number(b))) => {
+            return Ok(AST::Number(a * b));
+        }
+
+        (Ok(AST::Float(a)), Ok(AST::Float(b))) => {
+            return Ok(AST::Float(a * b));
+        }
+
+        (Ok(AST::Float(a)), Ok(AST::Number(b))) => {
+            return Ok(AST::Float(a * b as f64));
+        }
+
+        (Ok(AST::Number(a)), Ok(AST::Float(b))) => {
+            return Ok(AST::Float(a as f64 * b));
+        }
+
+        _ => {
+            return Err("mul requires 2 numbers".to_string());
+        }
+    }
+}
+
 pub fn abs(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
     match eval(args[0].clone(), &mut HashMap::new()) {
         Ok(AST::Number(a)) => {
@@ -183,6 +207,15 @@ pub fn get_object() -> HashMap<String, AST> {
     );
 
     objects.insert(
+        "mul".to_string(), 
+        AST::InternalFunction {
+            name: "mul".to_string(),
+            args: vec!["a".to_string(), "b".to_string()],
+            call_fn: mul,
+        }
+    );
+
+    objects.insert(
         "abs".to_string(), 
         AST::InternalFunction {
             name: "abs".to_string(),
@@ -263,7 +296,7 @@ mod tests {
     fn get_object_test() {
         let object = get_object();
 
-        assert_eq!(object.len(), 9);
+        assert_eq!(object.len(), 10);
         assert_eq!(object.contains_key("div"), true);
     }
 

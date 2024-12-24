@@ -24,7 +24,7 @@ mod tests {
         let math = get_package("math").unwrap();
         match math {
             AST::Object { properties, line: _ } => {
-                assert_eq!(properties.len(), 9);
+                assert_eq!(properties.len(), 10);
                 assert_eq!(properties.contains_key("div"), true);
             }
             _ => panic!("Expected AST::Object")
