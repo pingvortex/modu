@@ -1538,7 +1538,12 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
+                                AST::Null => {
+                                    args.push(AST::Number(lexer.slice().parse().unwrap()));
+                                }
+
                                 _ => {
+                                    args.push(arg);
                                     args.push(AST::Number(lexer.slice().parse().unwrap()));
                                 }
                             }
