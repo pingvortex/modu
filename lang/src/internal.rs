@@ -6,16 +6,21 @@ use crate::ast::AST;
 use crate::eval::eval;
 
 pub fn print(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
-    match eval(args[0].clone(), context) {
-        Ok(ast) => {
-            println!("{}", ast);
-            return Ok(ast);
-        }
+    for arg in args {
+        match eval(arg, context) {
+            Ok(value) => {
+                print!("{}", value);
+            }
 
-        Err(e) => {
-            return Err(e);
+            Err(e) => {
+                return Err(e);
+            }
         }
     }
+
+    println!();
+
+    Ok(AST::Null)
 }
 
 pub fn exit(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {

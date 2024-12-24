@@ -111,8 +111,17 @@ pub enum AST {
 impl std::fmt::Display for AST {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            // TODO: Implement
-            AST::String(s) => write!(f, "{}", s),
+            // TODO: Implement more
+            AST::String(s) => { 
+                let s = s.replace("\\t", "\t")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "\r")
+                    .replace("\\\"", "\"")
+                    .replace("\\'", "'")
+                    .replace("\\\\", "\\");
+
+                write!(f, "{}", s)
+            },
             AST::Number(n) => write!(f, "{}", n),
             AST::Float(n) => write!(f, "{}", n),
             AST::Boolean(b) => write!(f, "{}", b),

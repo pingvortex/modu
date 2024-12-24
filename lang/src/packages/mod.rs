@@ -10,6 +10,7 @@ pub fn get_package(name: &str) -> Option<AST> {
                 line: 0,
             })
         }
+        
         _ => None
     }
 }
@@ -23,7 +24,7 @@ mod tests {
         let math = get_package("math").unwrap();
         match math {
             AST::Object { properties, line: _ } => {
-                assert_eq!(properties.len(), 1);
+                assert_eq!(properties.len(), 7);
                 assert_eq!(properties.contains_key("div"), true);
             }
             _ => panic!("Expected AST::Object")

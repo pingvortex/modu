@@ -15,7 +15,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                         Some(value) => {
                             match value {
                                 AST::Function { name: _, args: f_args, body, line: _ } => {
-                                    if args.len() == f_args.len() {
+                                    if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                         let mut new_context = context.clone();
 
                                         for (i, arg) in f_args.iter().enumerate() {
@@ -35,7 +35,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                 }
 
                                 AST::InternalFunction { name: _, args: f_args, call_fn } => {
-                                    if args.len() == f_args.len() {
+                                    if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                         return call_fn(args, context);
                                     } else {
                                         return Err(format!("{} takes {} arguments", name, f_args.len()));
@@ -163,7 +163,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         Some(value) => {
                                             match value {
                                                 AST::Function { name, args: f_args, body, line } => {
-                                                    if args.len() == f_args.len() {
+                                                    if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                                         let mut new_context = context.clone();
 
                                                         for (i, arg) in f_args.iter().enumerate() {
@@ -179,7 +179,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                                 }
 
                                                 AST::InternalFunction { name, args: f_args, call_fn } => {
-                                                    if args.len() == f_args.len() {
+                                                    if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                                         return call_fn(args, context);
                                                     } else {
                                                         return Err(format!("{} takes {} arguments", name, f_args.len()));
