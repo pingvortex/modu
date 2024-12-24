@@ -1,7 +1,7 @@
 # Server
 Usage: **modu server [port: default 2424]**
 
-This will start the built-in modu interpreter server, which can be used to run code on platforms not support by modu, like web! \
+This will start the built-in modu interpreter server, which can be used to run code on platforms not supported by modu, like the web! \
 An example of this is the [Modu Web IDE](../ide).
 
 The server has the followings endpoints:
@@ -25,7 +25,9 @@ curl --location 'http://localhost:2424/eval' \
 
      print(a);'
 ```
+
 This will return a response in plaintext like
+
 ```
 1
 YOOOOO

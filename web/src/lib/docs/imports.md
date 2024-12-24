@@ -1,6 +1,6 @@
 # Imports
 
-We currently only support importing other files, no packages yet. \
+We currently only support importing other files and internal packages, no external ones yet \
 When you import a file, you can access it's variables and functions using pkg.*, if you imported with "... as pkg". \
 'pkg' can be any non-reserved keyword.
 
@@ -31,3 +31,13 @@ This should output:
 Hello, World!
 123
 ```
+
+You can also import with an * to remove the need of "yapper." on the start
+```rust
+import "yapper.modu" as *
+
+yap("Hello, World!");
+print(abc);
+```
+
+## Internal packages

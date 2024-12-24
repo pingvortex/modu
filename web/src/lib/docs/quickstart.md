@@ -1,5 +1,7 @@
 # Getting Started
 
+Can be used through [The Web IDE](../ide) btw
+
 ## Installation
 
 From [crates.io](https://crates.io/crates/modu)
