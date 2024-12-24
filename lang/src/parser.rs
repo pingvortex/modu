@@ -897,57 +897,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            if let AST::Number(n) = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Addition {
-                                        left: Box::new(AST::Number(n)),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    }),
-                                    line,
-                                });
-                            } else if let AST::Float(f) = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Addition {
-                                        left: Box::new(AST::Float(f)),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    }),
-                                    line,
-                                });
-                            } else if let AST::String(s) = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Addition {
-                                        left: Box::new(AST::String(s)),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    }),
-                                    line,
-                                });
-                            } else if let AST::Addition { left, right, line } = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Addition {
-                                        left,
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    }),
-                                    line,
-                                });
-                            } else if let AST::Subtraction { left, right, line } = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(AST::Subtraction {
-                                        left,
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    }),
-                                    line,
-                                });
-                            } else if let AST::Call { name: call_name, args, line } = *value {
+                            if let AST::Call { name: call_name, args, line } = *value {
                                 let mut new_args = args.clone();
 
                                 let last_arg = new_args.pop().unwrap_or(AST::Null);
@@ -989,7 +939,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     line,
                                 });
                             } else {
-                                return Err(("Expected a value before '+'".to_string(), current_line));
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(AST::Addition {
+                                        left: value,
+                                        right: Box::new(AST::Null),
+                                        line,
+                                    }),
+                                    line,
+                                });
                             }
                         }
                         
