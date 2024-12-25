@@ -316,7 +316,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
         }
 
         AST::String(value) => {
-            return Ok(AST::String(value.replace("\"", "")));
+            return Ok(AST::String(value.replace("\"", "").replace("\\n", "\n").replace("\\t", "\t")));
         }
 
         AST::Addition { left, right, line: _ } => {

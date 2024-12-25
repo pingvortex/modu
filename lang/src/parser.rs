@@ -2876,7 +2876,7 @@ mod tests {
     #[test]
     fn let_str() {
         let mut context = crate::utils::create_context();
-        parse("let x = \"test\"", &mut context);
+        parse("let x = \"test\"", &mut context).unwrap();
 
         assert_eq!(context.get("x"), Some(&AST::String("test".to_string())));
     }
