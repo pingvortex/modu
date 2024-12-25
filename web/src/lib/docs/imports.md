@@ -41,3 +41,20 @@ print(abc);
 ```
 
 ## Internal packages
+
+Internal packages are imported without **.modu** like:
+```rust
+import "math" as math;
+import "file" as file;
+
+let a = math.abs(-5);
+let b = file.read("input.modu");
+```
+or alternatively
+```rust
+import "math" as *;
+import "file" as *;
+
+let a = abs(-5);
+let b = read("input.modu");
+```

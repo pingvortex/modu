@@ -1,15 +1,27 @@
 # Limitations
 
 **NOTE! This is a non-exhaustive list** \
-This list contains silly errors i have to fix
+This list contains silly errors i have to fix.
 
-### You can **not** use if statements inside functions, example:
+### Nesting functions is a little goofy :(
+> And unpredictable
+
+Stuff like:
+
 ```rust
-fn a(b, c) {
-    if b == c {
-        print("b == c");
-    }
-}
+import "math" as m
+
+m.div(m.div(1,2), m.div(1,2))
 ```
-This will cause an error: ⚠️  Expected a function before '}' \
-This error is pending a fix
+Will most likely break. \
+You can get around this by using variables:
+```rust
+import "math" as m
+
+let a = m.div(5,2)
+let b = m.div(1,2)
+
+m.div(a, b)
+```
+
+Status: **To be Fixed**
