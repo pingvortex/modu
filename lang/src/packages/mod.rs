@@ -13,6 +13,12 @@ pub fn get_package(name: &str) -> Option<AST> {
         }
 
         "file" => {
+            let args = std::env::args().collect::<Vec<String>>();
+
+            if args[1] == "server" { // fallback incase the stop in eval.rs explodes for some reason
+                return None;
+            }
+
             Some(AST::Object {
                 properties: file::get_object(),
                 line: 0,

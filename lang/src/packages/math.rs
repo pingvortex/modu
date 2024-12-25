@@ -4,8 +4,8 @@ use rand;
 use crate::ast::AST;
 use crate::eval::eval;
 
-pub fn div(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
-    match (eval(args[0].clone(), &mut HashMap::new()), eval(args[1].clone(), &mut HashMap::new())) {
+pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    match (eval(args[0].clone(), context), eval(args[1].clone(), context)) {
         (Ok(AST::Number(a)), Ok(AST::Number(b))) => {
             if b == 0 {
                 return Err("cannot divide by zero".to_string());
@@ -45,7 +45,7 @@ pub fn div(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
         }
 
         _ => {
-            return Err("div requires 2 numbers".to_string());
+            return Err(format!("div requires 2 numbers, got {} and {}", args[0], args[1]));
         }
     }
 }
