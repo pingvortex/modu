@@ -12,6 +12,7 @@ keywords = ["programming-language", "cli", "interpreter", "language"]
 
 [dependencies]
 bat = "0.24.0"
+chrono = "0.4.39"
 logos = "0.15.0"
 rand = "0.8.5"
 rouille = "3.6.2"

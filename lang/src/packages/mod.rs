@@ -1,5 +1,6 @@
 mod math;
 mod file;
+mod time;
 
 use crate::ast::AST;
 
@@ -8,6 +9,13 @@ pub fn get_package(name: &str) -> Option<AST> {
         "math" => {
             Some(AST::Object {
                 properties: math::get_object(),
+                line: 0,
+            })
+        }
+
+        "time" => {
+            Some(AST::Object {
+                properties: time::get_object(),
                 line: 0,
             })
         }
