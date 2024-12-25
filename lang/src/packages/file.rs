@@ -24,6 +24,10 @@ pub fn write(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, 
 
     match (path, contents) {
         (AST::String(path), AST::String(contents)) => {
+            let contents = contents
+                .replace("\\n", "\n")
+                .replace("\\t", "\t");
+
             std::fs::write(path, contents).map_err(|e| e.to_string())?;
             Ok(AST::Null)
         }
@@ -44,6 +48,10 @@ pub fn write_append(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Resul
                 .open(path)
                 .map_err(|e| e.to_string())?;
 
+            let contents = contents
+                .replace("\\n", "\n")
+                .replace("\\t", "\t");
+
             if let Err(e) = writeln!(file, "{}", contents) {
                 return Err(e.to_string());
             }
@@ -51,7 +59,7 @@ pub fn write_append(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Resul
             Ok(AST::Null)
         }
 
-        _ => Err("write() expects two strings".to_string())
+        _ => Err("write_append() expects two strings".to_string())
     }
 }
 

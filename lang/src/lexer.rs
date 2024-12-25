@@ -4,11 +4,23 @@ use logos::Logos;
 pub enum LexingError {
     #[default]
     UnexpectedToken,
+    InvalidInteger(String),
     ExpectedToken,
 }
 
+impl From<std::num::ParseIntError> for LexingError {
+    fn from(err: std::num::ParseIntError) -> Self {
+        use std::num::IntErrorKind::*;
+
+        match err.kind() {
+            PosOverflow | NegOverflow => LexingError::InvalidInteger("Integer overflow".to_string()),
+            _ => LexingError::InvalidInteger("Other error".to_string()),
+        }
+    }
+}
+
 #[derive(Logos, Debug, PartialEq, Clone)]
-#[logos(extras = LexingError)]
+#[logos(error = LexingError)]
 #[logos(skip r"[ \t\n\f]+")]
 pub enum Token {
     #[regex("//[^\n]*|/\\*([^*]|\\*[^/])*\\*/")]
@@ -53,8 +65,8 @@ pub enum Token {
     #[token("=")]
     Assign,
 
-    #[regex("[0-9]+")]
-    Number,
+    #[regex("[0-9]+", |lex| lex.slice().parse())]
+    Number(i64),
 
     #[regex("[0-9]+\\.[0-9]+")]
     Float,
@@ -106,7 +118,7 @@ mod tests {
         assert_eq!(lexer.next(), Some(Ok(Token::Let)));
         assert_eq!(lexer.next(), Some(Ok(Token::Identifer)));
         assert_eq!(lexer.next(), Some(Ok(Token::Assign)));
-        assert_eq!(lexer.next(), Some(Ok(Token::Number)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Number(10))));
     }
 
     #[test]
