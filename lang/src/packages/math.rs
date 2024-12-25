@@ -186,11 +186,11 @@ pub fn ceil(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String>
     }
 }
 
-pub fn random(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn random(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
     return Ok(AST::Float(rand::random()));
 }
 
-pub fn random_int(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn random_int(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
     return Ok(AST::Number(rand::random()));
 }
 
@@ -288,8 +288,6 @@ pub fn get_object() -> HashMap<String, AST> {
 
 #[cfg(test)]
 mod tests {
-    use std::hash::Hash;
-
     use super::*;
 
     #[test]
