@@ -5,8 +5,6 @@ use crate::utils;
 use crate::packages::get_package;
 
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
-    let mut depth = 0;
-
     match expr {
         AST::Call { name, args, line: _ } => {
             match name.as_str() {
@@ -22,10 +20,18 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                             new_context.insert(arg.clone(), eval(args[i].clone(), &mut new_context.clone())?);
                                         }
 
+                                        let mut depth = 0;
+
                                         for expr in body {
                                             if let AST::Return { value, line: _ } = expr {
                                                 return eval(*value.clone(), &mut new_context);
                                             }
+
+                                            if depth > 100 {
+                                                return Err("Maximum recursion depth exceeded".to_string());
+                                            }
+
+                                            depth += 1;
 
                                             eval(expr.clone(), &mut new_context)?;
                                         }
@@ -92,7 +98,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             return Ok(AST::Null);
         }
 
-        AST::Import { mut file, as_, line } => {
+        AST::Import { file, as_, line } => {
             let args = std::env::args().collect::<Vec<String>>();
             let file = file.unwrap().replace("\"", "");
 
@@ -165,17 +171,17 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::PropertyCall { object, property, args, line } => {
+        AST::PropertyCall { object, property, args, line: _ } => {
             match object {
                 Some(name) => {
                     match context.get(&name) {
                         Some(value) => {
                             match value {
-                                AST::Object { properties, line } => {
+                                AST::Object { properties, line: _ } => {
                                     match properties.get(property.as_ref().unwrap()) {
                                         Some(value) => {
                                             match value {
-                                                AST::Function { name, args: f_args, body, line } => {
+                                                AST::Function { name, args: f_args, body, line: _ } => {
                                                     if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                                         let mut new_context = context.clone();
 
@@ -229,7 +235,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::IsEqual { left, right, line } => {
+        AST::IsEqual { left, right, line: _ } => {
             match (eval(*left, context)?, eval(*right, context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Boolean(l == r));
@@ -253,7 +259,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::IsUnequal { left, right, line } => {
+        AST::IsUnequal { left, right, line: _ } => {
             match (eval(*left, context)?, eval(*right, context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Boolean(l != r));
@@ -277,7 +283,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::Exists { value, line } => {
+        AST::Exists { value, line: _ } => {
             match eval(*value, context)? {
                 AST::Null => {
                     return Ok(AST::Boolean(false));
@@ -289,7 +295,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::IfStatement { condition, body, line } => {
+        AST::IfStatement { condition, body, line: _ } => {
             match eval(*condition, context)? {
                 AST::Boolean(b) => {
                     if b {
@@ -313,7 +319,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             return Ok(AST::String(value.replace("\"", "")));
         }
 
-        AST::Addition { left, right, line } => {
+        AST::Addition { left, right, line: _ } => {
             match (eval(*left.clone(), context)?, eval(*right.clone(), context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Number(l + r));
@@ -341,7 +347,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::Subtraction { left, right, line } => {
+        AST::Subtraction { left, right, line: _ } => {
             match (eval(*left.clone(), context)?, eval(*right.clone(), context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Number(l - r));
@@ -394,13 +400,13 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::PropertyAccess { object, property, line } => {
+        AST::PropertyAccess { object, property, line: _ } => {
             match object {
                 Some(name) => {
                     match context.get(&name) {
                         Some(value) => {
                             match value {
-                                AST::Object { properties, line } => {
+                                AST::Object { properties, line: _ } => {
                                     match properties.get(property.as_ref().unwrap()) {
                                         Some(value) => {
                                             return Ok(value.clone());
@@ -434,8 +440,6 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             return Err(format!("Unknown expression, got {:?}", expr));
         }
     }
-
-    depth -= 1;
 
     Ok(AST::Null)
 }

@@ -151,7 +151,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = temp_ast.pop().unwrap_or(AST::Null);
 
                     match value {
-                        AST::Import { file, as_, line } => {
+                        AST::Import { file, as_: _, line } => {
                             if file.is_none() {
                                 return Err(("Expected a file before '*'".to_string(), current_line));
                             }
@@ -341,7 +341,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = temp_ast.pop().unwrap_or(AST::Null);
                     
                     match value {
-                        AST::Import { file, as_, line } => {
+                        AST::Import { file, as_: _, line } => {
                             temp_ast.push(AST::Import {
                                 file,
                                 as_: Some(lexer.slice().to_string()),
@@ -368,7 +368,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         });
                                     }
 
-                                    AST::Addition { left, right, line } => {
+                                    AST::Addition { left, right: _, line } => {
                                         temp_ast.push(AST::LetDeclaration {
                                             name,
                                             value: Box::new(AST::Addition {
@@ -380,7 +380,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         });
                                     }
 
-                                    AST::Subtraction { left, right, line } => {
+                                    AST::Subtraction { left, right: _, line } => {
                                         temp_ast.push(AST::LetDeclaration {
                                             name,
                                             value: Box::new(AST::Subtraction {
@@ -392,7 +392,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         });
                                     }
 
-                                    AST::PropertyAccess { object, property, line } => {
+                                    AST::PropertyAccess { object, property: _, line } => {
                                         temp_ast.push(AST::LetDeclaration {
                                             name,
                                             value: Box::new(AST::PropertyAccess {
@@ -511,7 +511,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             let value = args.pop().unwrap_or(AST::Null);
 
                             match value {
-                                AST::PropertyAccess { object, property, line } => {
+                                AST::PropertyAccess { object, property: _, line } => {
                                     args.push(AST::PropertyAccess {
                                         object,
                                         property: Some(lexer.slice().to_string()),
@@ -519,7 +519,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::Addition { left, right, line } => {
+                                AST::Addition { left, right: _, line } => {
                                     args.push(AST::Addition {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -527,7 +527,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::Subtraction { left, right, line } => {
+                                AST::Subtraction { left, right: _, line } => {
                                     args.push(AST::Subtraction {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -557,7 +557,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             let arg = args.pop().unwrap_or(AST::Null);
 
                             match arg {
-                                AST::PropertyAccess { object, property, line } => {
+                                AST::PropertyAccess { object, property: _, line } => {
                                     args.push(AST::PropertyAccess {
                                         object,
                                         property: Some(lexer.slice().to_string()),
@@ -565,7 +565,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::Addition { left, right, line } => {
+                                AST::Addition { left, right: _, line } => {
                                     args.push(AST::Addition {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -573,7 +573,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::Subtraction { left, right, line } => {
+                                AST::Subtraction { left, right: _, line } => {
                                     args.push(AST::Subtraction {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -620,7 +620,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        AST::PropertyAccess { object, property, line } => {
+                        AST::PropertyAccess { object, property: _, line } => {
                             temp_ast.push(AST::PropertyAccess {
                                 object,
                                 property: Some(lexer.slice().to_string()),
@@ -708,7 +708,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = temp_ast.pop().unwrap_or(AST::Null);
 
                     match value {
-                        AST::Call { name, mut args, line } => {
+                        AST::Call { name, args, line } => {
                             temp_ast.push(AST::Call {
                                 name,
                                 args,
@@ -716,7 +716,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::PropertyCall { object, property, mut args, line } => {
+                        AST::PropertyCall { object, property, args, line } => {
                             temp_ast.push(AST::PropertyCall {
                                 object,
                                 property,
@@ -868,7 +868,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             let arg = args.pop().unwrap_or(AST::Null);
 
                             match arg {
-                                AST::Addition { left, right, line } => {
+                                AST::Addition { left, right: _, line } => {
                                     args.push(AST::Addition {
                                         left,
                                         right: Box::new(AST::String(lexer.slice().to_string())),
@@ -876,7 +876,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::Subtraction { left, right, line } => {
+                                AST::Subtraction { left, right: _, line } => {
                                     args.push(AST::Subtraction {
                                         left,
                                         right: Box::new(AST::String(lexer.slice().to_string())),
@@ -939,7 +939,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             let val = *value;
 
                             match val {
-                                AST::Addition { left, right, line } => {
+                                AST::Addition { left, right: _, line } => {
                                     temp_ast.push(AST::LetDeclaration {
                                         name,
                                         value: Box::new(AST::Addition {
@@ -1322,7 +1322,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::Addition { left, right, line } => {
+                        AST::Addition { left, right: _, line } => {
                             temp_ast.push(AST::Addition {
                                 left,
                                 right: Box::new(AST::Null),
@@ -1330,7 +1330,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::Subtraction { left, right, line } => {
+                        AST::Subtraction { left, right: _, line } => {
                             temp_ast.push(AST::Subtraction {
                                 left,
                                 right: Box::new(AST::Null),
@@ -1514,7 +1514,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::Subtraction { left, right, line } => {
+                        AST::Subtraction { left, right: _, line } => {
                             temp_ast.push(AST::Subtraction {
                                 left,
                                 right: Box::new(AST::Null),
@@ -1522,7 +1522,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::Addition { left, right, line } => {
+                        AST::Addition { left, right: _, line } => {
                             temp_ast.push(AST::Addition {
                                 left,
                                 right: Box::new(AST::Null),
@@ -1840,7 +1840,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            if let AST::Addition { left, right, line } = *value {
+                            if let AST::Addition { left, right: _, line } = *value {
                                 temp_ast.push(AST::LetDeclaration {
                                     name,
                                     value: Box::new(AST::Addition {
@@ -1850,7 +1850,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }),
                                     line,
                                 });
-                            } else if let AST::Subtraction { left, right, line } = *value {
+                            } else if let AST::Subtraction { left, right: _, line } = *value {
                                 temp_ast.push(
                                     AST::LetDeclaration {
                                         name,
@@ -1879,7 +1879,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         }
                                     }
 
-                                    AST::Subtraction { left, right, line } => {
+                                    AST::Subtraction { left, right: _, line } => {
                                         args.push(AST::Subtraction {
                                             left,
                                             right: Box::new(AST::Number(n)),
@@ -1999,7 +1999,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        AST::Subtraction { left, right, line } => {
+                        AST::Subtraction { left, right: _, line } => {
                             temp_ast.push(AST::Subtraction {
                                 left,
                                 right: Box::new(AST::Number(n)),
@@ -2020,7 +2020,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         line: *line,
                                     });
                                 } else {
-                                    if let AST::Addition { left: addition_left, right, line } = right.as_ref() {
+                                    if let AST::Addition { left: addition_left, right: _, line } = right.as_ref() {
                                         temp_ast.push(AST::IfStatement {
                                             condition: Box::new(AST::IsEqual {
                                                 left: left.clone(),
@@ -2034,7 +2034,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                             body,
                                             line: *line,
                                         });
-                                    } else if let AST::Subtraction { left: subtraction_left, right, line } = right.as_ref() {
+                                    } else if let AST::Subtraction { left: subtraction_left, right: _, line } = right.as_ref() {
                                         temp_ast.push(AST::IfStatement {
                                             condition: Box::new(AST::IsEqual {
                                                 left: left.clone(),
@@ -2065,7 +2065,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                             line: *line,
                                         });
                                     } else {
-                                        if let AST::Addition { left: addition_left, right, line } = right.as_ref() {
+                                        if let AST::Addition { left: addition_left, right: _, line } = right.as_ref() {
                                             temp_ast.push(AST::IfStatement {
                                                 condition: Box::new(AST::IsUnequal {
                                                     left: left.clone(),
@@ -2079,7 +2079,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                                 body,
                                                 line: *line,
                                             });
-                                        } else if let AST::Subtraction { left: subtraction_left, right, line } = right.as_ref() {
+                                        } else if let AST::Subtraction { left: subtraction_left, right: _, line } = right.as_ref() {
                                             temp_ast.push(AST::IfStatement {
                                                 condition: Box::new(AST::IsUnequal  {
                                                     left: left.clone(),
@@ -2115,7 +2115,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     value: Box::new(AST::Number(n)),
                                     line,
                                 });
-                            } else if let AST::Addition { left, right, line } = *value {
+                            } else if let AST::Addition { left, right: _, line } = *value {
                                 temp_ast.push(AST::Return {
                                     value: Box::new(AST::Addition {
                                         left,
@@ -2124,7 +2124,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }),
                                     line,
                                 });
-                            } else if let AST::Subtraction { left, right, line } = *value {
+                            } else if let AST::Subtraction { left, right: _, line } = *value {
                                 temp_ast.push(AST::Return {
                                     value: Box::new(AST::Subtraction {
                                         left,
@@ -2194,7 +2194,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::LetDeclaration { name, value, line } => {
+                        AST::LetDeclaration { name, value: _, line } => {
                             temp_ast.push(AST::LetDeclaration {
                                 name,
                                 value: Box::new(AST::Boolean(lexer.slice() == "true")),
@@ -2437,7 +2437,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            if let AST::Addition { left, right, line } = *value {
+                            if let AST::Addition { left, right: _, line } = *value {
                                 temp_ast.push(AST::LetDeclaration {
                                     name,
                                     value: Box::new(AST::Addition {
@@ -2447,7 +2447,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }),
                                     line,
                                 });
-                            } else if let AST::Subtraction { left, right, line } = *value {
+                            } else if let AST::Subtraction { left, right: _, line } = *value {
                                 temp_ast.push(
                                     AST::LetDeclaration {
                                         name,
@@ -2617,7 +2617,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        AST::Subtraction { left, right, line } => {
+                        AST::Subtraction { left, right: _, line } => {
                             temp_ast.push(AST::Subtraction {
                                 left,
                                 right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
@@ -2706,7 +2706,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                         AST::Identifer(name) => {
                             match temp_ast.pop() {
-                                Some(AST::IfStatement { condition, body, line }) => {
+                                Some(AST::IfStatement { condition: _, body, line }) => {
                                     temp_ast.push(AST::IfStatement {
                                         condition: Box::new(AST::Exists {
                                             value: Box::new(AST::Identifer(name)),
