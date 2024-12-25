@@ -4,8 +4,7 @@ use logos::Logos;
 pub enum LexingError {
     #[default]
     UnexpectedToken,
-    InvalidInteger(String),
-    ExpectedToken,
+    InvalidInteger(String)
 }
 
 impl From<std::num::ParseIntError> for LexingError {
@@ -137,5 +136,15 @@ mod tests {
         for token in lexer {
             println!("{:?}", token);
         }
+    }
+
+    #[test]
+    fn int_overflow() {
+        let mut lexer = Token::lexer("let x = 9223372036854775808");
+
+        assert_eq!(lexer.next(), Some(Ok(Token::Let)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Identifer)));
+        assert_eq!(lexer.next(), Some(Ok(Token::Assign)));
+        assert_eq!(lexer.next(), Some(Err(LexingError::InvalidInteger("Integer overflow".to_string()))));
     }
 }
