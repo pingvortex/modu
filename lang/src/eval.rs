@@ -139,7 +139,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             } else {
                 let args = std::env::args().collect::<Vec<String>>();
 
-                if args[1] == "server" {
+                if args.len() > 1 && args[1] == "server" {
                     if &file == "file" {
                         return Err("Cannot import file package in server mode".to_string());
                     }

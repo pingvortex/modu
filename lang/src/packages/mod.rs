@@ -15,7 +15,7 @@ pub fn get_package(name: &str) -> Option<AST> {
         "file" => {
             let args = std::env::args().collect::<Vec<String>>();
 
-            if args[1] == "server" { // fallback incase the stop in eval.rs explodes for some reason
+            if args.len() > 1 && args[1] == "server" { // fallback incase the stop in eval.rs explodes for some reason
                 return None;
             }
 
