@@ -2773,10 +2773,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             return Err((format!("Unexpected token: {:?}", lexer.slice()), current_line));
     
                         }
-    
-                        LexingError::ExpectedToken => {
-                            return Err((format!("Expected token: {:?}", lexer.slice()), current_line));
-                        }
 
                         LexingError::InvalidInteger(str) => {
                             return Err((format!("Could not parse integer: {:?}", str), current_line));
