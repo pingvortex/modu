@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn get_time_package() {
         let time = get_object();
-        assert_eq!(time.len(), 1);
+        assert_eq!(time.len(), 3);
         assert_eq!(time.contains_key("now"), true);
     }
 
