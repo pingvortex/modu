@@ -2,8 +2,13 @@
 
 import "time" as time
 import "math" as *
+import "math" as math // yes
 
 print( div( div( mul(5, 2), 2 ), 1 ) );
 print( div( div( div(1, 2), div(1, 2) ), div(1, 2) ) );
+print( math.div( math.div( math.mul(5, 2), pow(2, 1) ), 1 ) );
+print(time.to_local_date_time(time.now()));
 
-//print(time.to_local_date_time(time.now()))
+import "yapper.modu" as yapper
+
+yapper.yap(time.to_local_date_time(time.now()))

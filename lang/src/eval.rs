@@ -36,7 +36,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                             eval(expr.clone(), &mut new_context)?;
                                         }
                                     } else {                                        
-                                        return Err(format!("{} takes {} arguments", name, f_args.len()));
+                                        return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                     }
                                 }
 
@@ -45,7 +45,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         return call_fn(args, context);
                                     } else {
                                         dbg!(&args);
-                                        return Err(format!("{} takes {} arguments", name, f_args.len()));
+                                        return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                     }
                                 }
 
@@ -187,14 +187,18 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                                         let mut new_context = context.clone();
 
                                                         for (i, arg) in f_args.iter().enumerate() {
-                                                            new_context.insert(arg.clone(), args[i].clone());
+                                                            new_context.insert(arg.clone(), eval(args[i].clone(), &mut new_context.clone())?);
                                                         }
 
                                                         for expr in body {
+                                                            if let AST::Return { value, line: _ } = expr {
+                                                                return eval(*value.clone(), &mut new_context);
+                                                            }
+
                                                             eval(expr.clone(), &mut new_context)?;
                                                         }
                                                     } else {
-                                                        return Err(format!("{} takes {} arguments", name, args.len()));
+                                                        return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                                     }
                                                 }
 
@@ -202,7 +206,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                                     if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                                         return call_fn(args, context);
                                                     } else {
-                                                        return Err(format!("{} takes {} arguments", name, f_args.len()));
+                                                        return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                                     }
                                                 }
 
@@ -387,7 +391,6 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 }
             }
         }
-        
 
         AST::Identifer(name) => {
             match context.get(&name) {

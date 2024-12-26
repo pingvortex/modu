@@ -111,6 +111,8 @@ pub enum AST {
     Rparen,
 
     Comma,
+
+    Dot,
 }
 
 
