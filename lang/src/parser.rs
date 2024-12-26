@@ -95,14 +95,13 @@ pub fn handle_nested_ast(mut ast: Vec<AST>, temp_ast: Vec<AST>, current_line: us
 }
 
 pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usize)> {
-    dbg!(&last);
-    dbg!(&arg);
+    //dbg!(&arg);
 
     match last.clone() {
         AST::Call { name, mut args, line } => {
             let last_arg = args.pop().unwrap_or(AST::Null);
 
-            dbg!(&last_arg);
+            //dbg!(&last_arg);
 
             match (last_arg.clone(), arg.clone()) {
                 (AST::Call { name: inner_name, args: mut inner_args, line: inner_line }, AST::Rparen) => {
@@ -127,13 +126,14 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                             }, AST::Rparen)?;
 
                             inner_args.push(new_call);
-                            inner_args.push(AST::Rparen);
 
                             args.push(AST::Call {
                                 name: inner_name,
                                 args: inner_args,
                                 line: inner_line,
                             });
+
+                            //dbg!(&args);
                         }
 
                         _ => {
@@ -169,13 +169,27 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                         }
 
                         _ => {
-                            let new_call = handle_nested_arguments(AST::Call {
-                                name: inner_name,
-                                args: inner_args,
-                                line: inner_line,
-                            }, arg)?;
+                            match inner_args.clone().pop().unwrap_or(AST::Null) {
+                                AST::Rparen => {
+                                    args.push(AST::Call {
+                                        name: inner_name.clone(),
+                                        args: inner_args,
+                                        line: inner_line,
+                                    });
 
-                            args.push(new_call);
+                                    args.push(arg);
+                                }
+
+                                _ => {
+                                    let new_call = handle_nested_arguments(AST::Call {
+                                        name: inner_name,
+                                        args: inner_args,
+                                        line: inner_line,
+                                    }, arg)?;
+        
+                                    args.push(new_call);
+                                }
+                            }
                         }
                     }
                 }
@@ -197,9 +211,7 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                         args.push(last_arg);
                     }
 
-                    if arg != AST::Rparen {
-                        args.push(arg);
-                    }
+                    args.push(arg);
                 }
             }
 
@@ -351,6 +363,35 @@ pub fn clean_args(obj: AST) -> AST {
                 object,
                 property,
                 args: new_args,
+                line,
+            }
+        }
+
+        AST::IfStatement { condition, body, line } => {
+            let mut new_body = vec![];
+
+            for expr in body {
+                new_body.push(clean_args(expr));
+            }
+
+            AST::IfStatement {
+                condition,
+                body: new_body,
+                line,
+            }
+        }
+
+        AST::Function { name, args, body, line } => {
+            let mut new_body = vec![];
+
+            for expr in body {
+                new_body.push(clean_args(expr));
+            }
+
+            AST::Function {
+                name,
+                args,
+                body: new_body,
                 line,
             }
         }
@@ -816,7 +857,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 }
 
                                 _ => {
-                                    dbg!(&value);
                                     args.push(value);
 
                                     args.push(AST::Identifer(lexer.slice().to_string()));
@@ -3071,7 +3111,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             }
 
             AST::LetDeclaration { name, value, line } => {
-                let result = eval(AST::LetDeclaration { name, value, line }, context);
+                let cleaned_obj = clean_args(AST::LetDeclaration { name, value, line });
+
+                let result = eval(cleaned_obj, context);
 
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
@@ -3081,8 +3123,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             AST::Call { name, args, line } => {
                 let cleaned_call = clean_args(AST::Call { name, args, line });
 
-                dbg!(&cleaned_call);
-
                 let result = eval(cleaned_call, context);
 
                 if result.is_err() {
@@ -3091,7 +3131,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             }
 
             AST::PropertyCall { object, property, args, line } => {
-                let result = eval(AST::PropertyCall { object, property, args, line }, context);
+                let cleaned_call = clean_args(AST::PropertyCall { object, property, args, line });
+
+                let result = eval(cleaned_call, context);
 
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
@@ -3099,7 +3141,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             }
 
             AST::Function { name, args, body, line } => {
-                let result = eval(AST::Function { name, args, body, line }, context);
+                let cleaned_obj = clean_args(AST::Function { name, args, body, line });
+
+                let result = eval(cleaned_obj, context);
 
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
@@ -3107,7 +3151,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             }
 
             AST::IfStatement { condition, body, line } => {
-                let result = eval(AST::IfStatement { condition, body, line }, context);
+                let cleaned_obj = clean_args(AST::IfStatement { condition, body, line });
+
+                let result = eval(cleaned_obj, context);
 
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));

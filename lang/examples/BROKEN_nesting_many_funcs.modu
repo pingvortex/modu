@@ -4,5 +4,6 @@ import "time" as time
 import "math" as *
 
 print( div( div( mul(5, 2), 2 ), 1 ) );
+print( div( div( div(1, 2), div(1, 2) ), div(1, 2) ) );
 
 //print(time.to_local_date_time(time.now()))
