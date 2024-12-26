@@ -4,8 +4,8 @@ use crate::eval::eval;
 
 use logos::Logos;
 use std::collections::HashMap;
+use std::vec;
 
-// TODO: implement this for more of the wack stuff like nested calls and shi
 pub fn handle_nested_ast(mut ast: Vec<AST>, temp_ast: Vec<AST>, current_line: usize) -> Result<Vec<AST>, (String, usize)> {
     if ast.is_empty() {
         return Ok(temp_ast);
@@ -91,6 +91,271 @@ pub fn handle_nested_ast(mut ast: Vec<AST>, temp_ast: Vec<AST>, current_line: us
 
             Ok(ast)
         }
+    }
+}
+
+pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usize)> {
+    dbg!(&last);
+    dbg!(&arg);
+
+    match last.clone() {
+        AST::Call { name, mut args, line } => {
+            let last_arg = args.pop().unwrap_or(AST::Null);
+
+            dbg!(&last_arg);
+
+            match (last_arg.clone(), arg.clone()) {
+                (AST::Call { name: inner_name, args: mut inner_args, line: inner_line }, AST::Rparen) => {
+                    let last_inner = inner_args.pop().unwrap_or(AST::Null);
+
+                    match last_inner {
+                        AST::Rparen => {
+                            args.push(AST::Call {
+                                name: inner_name.clone(),
+                                args: inner_args,
+                                line: inner_line,
+                            });
+
+                            args.push(AST::Rparen);
+                        }
+
+                        AST::Call { name: inner_inner_name, args: inner_inner_args, line: inner_inner_line } => {
+                            let new_call = handle_nested_arguments(AST::Call {
+                                name: inner_inner_name,
+                                args: inner_inner_args,
+                                line: inner_inner_line,
+                            }, AST::Rparen)?;
+
+                            inner_args.push(new_call);
+                            inner_args.push(AST::Rparen);
+
+                            args.push(AST::Call {
+                                name: inner_name,
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
+                        _ => {
+                            inner_args.push(last_inner);
+
+                            let new_call = handle_nested_arguments(AST::Call {
+                                name: inner_name,
+                                args: inner_args,
+                                line: inner_line,
+                            }, AST::Rparen)?;
+
+                            args.push(new_call);
+                        }
+                    }
+
+                    /*args.push(AST::Call {
+                        name: inner_name,
+                        args: inner_args,
+                        line: inner_line,
+                    });
+
+                    args.push(arg);*/
+                }
+
+                (AST::Call { name: inner_name, args: inner_args, line: inner_line }, _) => {
+                    match arg {
+                        AST::Rparen => {
+                            args.push(AST::Call {
+                                name: inner_name.clone(),
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
+                        _ => {
+                            let new_call = handle_nested_arguments(AST::Call {
+                                name: inner_name,
+                                args: inner_args,
+                                line: inner_line,
+                            }, arg)?;
+
+                            args.push(new_call);
+                        }
+                    }
+                }
+
+                (AST::PropertyCall { .. }, AST::Rparen) => {
+                    args.push(last_arg);                
+                }
+
+                (AST::Identifer(ident), AST::Lparen) => {
+                    args.push(AST::Call { name: ident.clone(), args: vec![], line });
+                }
+
+                (AST::Null, _) => {
+                    args.push(arg);
+                }
+
+                _ => {
+                    if last_arg != AST::Null {
+                        args.push(last_arg);
+                    }
+
+                    if arg != AST::Rparen {
+                        args.push(arg);
+                    }
+                }
+            }
+
+            Ok(AST::Call {
+                name: name.clone(),
+                args,
+                line: line,
+            })
+        }
+
+        AST::PropertyCall { object, property, mut args, line } => {
+            let last_arg = args.pop().unwrap_or(AST::Null);
+
+            match (last_arg.clone(), arg.clone()) {
+                (AST::Call { .. }, AST::Rparen) => {
+                    args.push(last_arg);
+                }
+
+                (AST::Call { name: inner_name, args: mut inner_args, line: inner_line }, _) => {
+                    match arg {
+                        AST::Rparen => {
+                            args.push(AST::Call {
+                                name: inner_name.clone(),
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
+                        _ => {
+                            inner_args.push(arg);
+
+                            args.push(AST::Call {
+                                name: inner_name.clone(),
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+                    }
+                }
+
+                (AST::PropertyCall { .. }, AST::Rparen) => {
+                    args.push(last_arg);                }
+
+                (AST::Identifer(ident), AST::Lparen) => {
+                    args.push(AST::Call { name: ident.clone(), args: vec![], line });
+                }
+
+                (AST::Null, _) => {
+                    args.push(arg);
+                }
+
+                _ => {
+                    if last_arg != AST::Null {
+                        args.push(last_arg);
+                    }
+
+                    if arg != AST::Rparen {
+                        args.push(arg);
+                    }
+                }
+            }
+
+            Ok(AST::PropertyCall {
+                object: object.clone(),
+                property: property.clone(),
+                args,
+                line,
+            })
+        }
+
+        _ => {
+            Ok(last)
+        }
+    }
+}
+
+pub fn clean_args(obj: AST) -> AST {
+    match obj {
+        AST::Call { name, args, line } => {
+            let mut new_args = Vec::new();
+
+            for arg in args {
+                match arg {
+                    AST::Call { name: arg_name, args: arg_args, line: arg_line } => {
+                        new_args.push(clean_args(AST::Call {
+                            name: arg_name,
+                            args: arg_args,
+                            line: arg_line,
+                        }));
+                    }
+
+                    AST::PropertyCall { object, property, args: arg_args, line: arg_line } => {
+                        new_args.push(clean_args(AST::PropertyCall {
+                            object,
+                            property,
+                            args: arg_args,
+                            line: arg_line,
+                        }));
+                    }
+
+                    AST::Rparen
+                    | AST::Comma => {}
+
+                    _ => {
+                        new_args.push(arg);
+                    }
+                }
+            }
+
+            AST::Call {
+                name,
+                args: new_args,
+                line,
+            }
+        }
+
+        AST::PropertyCall { object, property, args, line } => {
+            let mut new_args = Vec::new();
+
+            for arg in args {
+                match arg {
+                    AST::Call { name: arg_name, args: arg_args, line: arg_line } => {
+                        new_args.push(clean_args(AST::Call {
+                            name: arg_name,
+                            args: arg_args,
+                            line: arg_line,
+                        }));
+                    }
+
+                    AST::PropertyCall { object, property, args: arg_args, line: arg_line } => {
+                        new_args.push(clean_args(AST::PropertyCall {
+                            object,
+                            property,
+                            args: arg_args,
+                            line: arg_line,
+                        }));
+                    }
+
+                    AST::Rparen
+                    | AST::Comma => {}
+
+                    _ => {
+                        new_args.push(arg);
+                    }
+                }
+            }
+
+            AST::PropertyCall {
+                object,
+                property,
+                args: new_args,
+                line,
+            }
+        }
+
+        _ => obj
     }
 }
 
@@ -438,6 +703,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                             AST::Null => {
                                                 args.push(AST::Identifer(lexer.slice().to_string()));
                                             }
+                                            
 
                                             _ => {
                                                 args.push(last_arg);
@@ -535,11 +801,22 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
+                                AST::Call { name: call_name, args: arg_args, line } => {
+                                    let new_call = handle_nested_arguments(AST::Call {
+                                        name: call_name,
+                                        args: arg_args,
+                                        line,
+                                    }, AST::Identifer(lexer.slice().to_string()))?;
+
+                                    args.push(new_call);
+                                }
+
                                 AST::Null => {
                                     args.push(AST::Identifer(lexer.slice().to_string()));
                                 }
 
                                 _ => {
+                                    dbg!(&value);
                                     args.push(value);
 
                                     args.push(AST::Identifer(lexer.slice().to_string()));
@@ -709,11 +986,13 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                     match value {
                         AST::Call { name, args, line } => {
-                            temp_ast.push(AST::Call {
+                            let new_call = handle_nested_arguments(AST::Call {
                                 name,
                                 args,
                                 line,
-                            });
+                            }, AST::Comma)?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::PropertyCall { object, property, args, line } => {
@@ -838,6 +1117,22 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
+                                Some(AST::Call { name: call_name, args: arg_args, line }) => {
+                                    let new_call = handle_nested_arguments(AST::Call {
+                                        name: call_name,
+                                        args: arg_args,
+                                        line,
+                                    }, AST::Lparen)?;
+
+                                    args.push(new_call);
+
+                                    temp_ast.push(AST::Call {
+                                        name,
+                                        args,
+                                        line,
+                                    });
+                                }
+
                                 _ => return Err(("Expected an identifier before '()' in a function call".to_string(), current_line)),
                             }
                         }
@@ -885,14 +1180,13 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 }
 
                                 AST::Call { name: call_name, args: arg_args, line } => {
-                                    let mut new_arg_args = arg_args.clone();
-                                    new_arg_args.push(AST::String(lexer.slice().to_string()));
-
-                                    args.push(AST::Call {
+                                    let new_call = handle_nested_arguments(AST::Call {
                                         name: call_name,
-                                        args: new_arg_args,
+                                        args: arg_args,
                                         line,
-                                    });
+                                    }, AST::String(lexer.slice().to_string()))?;
+
+                                    args.push(new_call);
                                 }
 
                                 AST::PropertyCall { object, property, args: arg_args, line } => {
@@ -1582,52 +1876,13 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 }
 
                                 AST::Call { name: call_name, args: arg_args, line } => {
-                                    let mut new_arg_args = arg_args.clone();
-
-                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
-
-                                    match last_arg.clone() {
-                                        AST::Addition { left, right, line } => {
-                                            if AST::Null == *right {
-                                                new_arg_args.push(AST::Addition {
-                                                    left,
-                                                    right: Box::new(AST::Number(n)),
-                                                    line,
-                                                });
-                                            } else {
-                                                new_arg_args.push(last_arg);
-                                                new_arg_args.push(AST::Number(n));
-                                            }
-                                        }
-
-                                        AST::Subtraction { left, right, line } => {
-                                            if AST::Null == *right {
-                                                new_arg_args.push(AST::Subtraction {
-                                                    left,
-                                                    right: Box::new(AST::Number(n)),
-                                                    line,
-                                                });
-                                            } else {
-                                                new_arg_args.push(last_arg);
-                                                new_arg_args.push(AST::Number(n));
-                                            }
-                                        }
-
-                                        AST::Null => {
-                                            new_arg_args.push(AST::Number(n));
-                                        }
-
-                                        _ => {
-                                            new_arg_args.push(last_arg);
-                                            new_arg_args.push(AST::Number(n));
-                                        }
-                                    }
-
-                                    args.push(AST::Call {
+                                    let new_call = handle_nested_arguments(AST::Call {
                                         name: call_name,
-                                        args: new_arg_args,
+                                        args: arg_args,
                                         line,
-                                    });
+                                    }, AST::Number(n))?;
+
+                                    args.push(new_call);
                                 }
 
                                 AST::PropertyCall { object, property, args: arg_args, line } => {
@@ -2636,11 +2891,11 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                     match value {
                         AST::Call { name, args, line } => {
-                            temp_ast.push(AST::Call {
-                                name,
-                                args,
-                                line,
-                            });
+                            let new_call = handle_nested_arguments(
+                                AST::Call { name, args, line }, AST::Rparen
+                            )?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::PropertyCall { object, property, args, line } => {
@@ -2824,7 +3079,11 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             }
 
             AST::Call { name, args, line } => {
-                let result = eval(AST::Call { name, args, line }, context);
+                let cleaned_call = clean_args(AST::Call { name, args, line });
+
+                dbg!(&cleaned_call);
+
+                let result = eval(cleaned_call, context);
 
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));

@@ -105,6 +105,12 @@ pub enum AST {
     Null,
 
     Semicolon,
+
+    Lparen,
+
+    Rparen,
+
+    Comma,
 }
 
 
