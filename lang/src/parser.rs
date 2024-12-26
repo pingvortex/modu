@@ -130,6 +130,23 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                             });
                         }
 
+                        AST::PropertyCall { object, property, args: inner_inner_args, line: inner_inner_line } => {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
+                                object,
+                                property,
+                                args: inner_inner_args,
+                                line: inner_inner_line,
+                            }, AST::Rparen)?;
+
+                            inner_args.push(new_call);
+
+                            args.push(AST::Call {
+                                name: inner_name,
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
                         _ => {
                             inner_args.push(last_inner);
 
@@ -162,6 +179,24 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                         AST::Call { name: inner_inner_name, args: inner_inner_args, line: inner_inner_line } => {
                             let new_call = handle_nested_arguments(AST::Call {
                                 name: inner_inner_name,
+                                args: inner_inner_args,
+                                line: inner_inner_line,
+                            }, AST::Rparen)?;
+
+                            inner_args.push(new_call);
+
+                            args.push(AST::PropertyCall {
+                                object,
+                                property,
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
+                        AST::PropertyCall { object: inner_object, property: inner_property, args: inner_inner_args, line: inner_inner_line } => {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
+                                object: inner_object,
+                                property: inner_property,
                                 args: inner_inner_args,
                                 line: inner_inner_line,
                             }, AST::Rparen)?;
@@ -297,6 +332,91 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
 
                 (AST::Null, _) => {
                     args.push(arg);
+                }
+
+                (val, AST::Minus) => {
+                    if val == AST::Comma {
+                        args.push(val);
+
+                        args.push(AST::Subtraction {
+                            left: Box::new(AST::Null),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    } else {
+                        args.push(AST::Subtraction {
+                            left: Box::new(val),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    }
+                }
+
+                (AST::Subtraction { left, right, line }, val) => {
+                    if *right == AST::Null && val != AST::Comma {
+                        args.push(AST::Subtraction {
+                            left,
+                            right: Box::new(val),
+                            line,
+                        });
+                    } else {
+                        if last_arg != AST::Null {
+                            args.push(last_arg);
+                        }
+
+                        args.push(arg);
+                    }
+                }
+
+                (AST::Minus, _) => {
+                    args.push(AST::Subtraction {
+                        left: Box::new(AST::Null),
+                        right: Box::new(arg),
+                        line,
+                    });
+                }
+
+                (val, AST::Plus) => {
+                    if val == AST::Comma {
+                        args.push(val);
+
+                        args.push(AST::Addition {
+                            left: Box::new(AST::Null),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    } else {
+                        args.push(AST::Addition {
+                            left: Box::new(val),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    }
+                }
+
+                
+                (AST::Addition { left, right, line }, val) => {
+                    if *right == AST::Null && arg != AST::Comma {
+                        args.push(AST::Addition {
+                            left,
+                            right: Box::new(val),
+                            line,
+                        });
+                    } else {
+                        if last_arg != AST::Null {
+                            args.push(last_arg);
+                        }
+
+                        args.push(arg);
+                    }
+                }
+
+                (AST::Plus, _) => {
+                    args.push(AST::Addition {
+                        left: Box::new(AST::Null),
+                        right: Box::new(arg),
+                        line,
+                    });
                 }
 
                 _ => {
@@ -349,6 +469,23 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                             });
                         }
 
+                        AST::PropertyCall { object, property, args: inner_inner_args, line: inner_inner_line } => {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
+                                object,
+                                property,
+                                args: inner_inner_args,
+                                line: inner_inner_line,
+                            }, AST::Rparen)?;
+
+                            inner_args.push(new_call);
+
+                            args.push(AST::Call {
+                                name: inner_name,
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
                         _ => {
                             inner_args.push(last_inner);
 
@@ -381,6 +518,24 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
                         AST::Call { name: inner_inner_name, args: inner_inner_args, line: inner_inner_line } => {
                             let new_call = handle_nested_arguments(AST::Call {
                                 name: inner_inner_name,
+                                args: inner_inner_args,
+                                line: inner_inner_line,
+                            }, AST::Rparen)?;
+
+                            inner_args.push(new_call);
+
+                            args.push(AST::PropertyCall {
+                                object,
+                                property,
+                                args: inner_args,
+                                line: inner_line,
+                            });
+                        }
+
+                        AST::PropertyCall { object: inner_object, property: inner_property, args: inner_inner_args, line: inner_inner_line } => {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
+                                object: inner_object,
+                                property: inner_property,
                                 args: inner_inner_args,
                                 line: inner_inner_line,
                             }, AST::Rparen)?;
@@ -516,6 +671,92 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
 
                 (AST::Null, _) => {
                     args.push(arg);
+                }
+
+                (val, AST::Minus) => {
+                    if val == AST::Comma {
+                        args.push(val);
+
+                        args.push(AST::Subtraction {
+                            left: Box::new(AST::Null),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    } else {
+                        args.push(AST::Subtraction {
+                            left: Box::new(val),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    }
+                }
+
+                (AST::Subtraction { left, right, line }, val) => {
+                    if *right == AST::Null && val != AST::Comma {
+                        args.push(AST::Subtraction {
+                            left,
+                            right: Box::new(val),
+                            line,
+                        });
+                    } else {
+                        if last_arg != AST::Null {
+                            args.push(last_arg);
+                        }
+
+                        args.push(arg);
+                    }
+                }
+
+                (AST::Minus, _) => {
+                    args.push(AST::Subtraction {
+                        left: Box::new(AST::Null),
+                        right: Box::new(arg),
+                        line,
+                    });
+                }
+
+                (val, AST::Plus) => {
+                    if val == AST::Comma {
+                        args.push(val);
+
+                        args.push(AST::Addition {
+                            left: Box::new(AST::Null),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    } else {
+                        args.push(AST::Addition {
+                            left: Box::new(val),
+                            right: Box::new(AST::Null),
+                            line,
+                        });
+                    }
+                }
+
+                
+                (AST::Addition { left, right, line }, val) => {
+                    if *right == AST::Null && arg != AST::Comma {
+                        args.push(AST::Addition {
+                            left,
+                            right: Box::new(val),
+                            line,
+                        });
+                    } else {
+                        if last_arg != AST::Null {
+                            args.push(last_arg);
+                        }
+
+                        args.push(arg);
+                    }
+                }
+
+
+                (AST::Plus, _) => {
+                    args.push(AST::Addition {
+                        left: Box::new(AST::Null),
+                        right: Box::new(arg),
+                        line,
+                    });
                 }
 
                 _ => {
@@ -860,7 +1101,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        AST::PropertyCall { object, property, mut args, line } => {
+                        AST::PropertyCall { object, property, args, line } => {
                             if args.is_empty() {
                                 return Err(("Expected a property before '.' in property call".to_string(), current_line));
                             } else {
@@ -876,18 +1117,49 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::LetDeclaration { name, value, line } => {
-                            if let AST::Identifer(ident_name) = *value {
-                                temp_ast.push(AST::LetDeclaration {
-                                    name: name,
-                                    value: Box::new(AST::PropertyAccess {
-                                        object: Some(ident_name),
+                            let value = *value;
+
+                            match value  {
+                                AST::Identifer(ident) => {
+                                    temp_ast.push(AST::PropertyAccess {
+                                        object: Some(ident),
                                         property: None,
                                         line,
-                                    }),
-                                    line,
-                                });
-                            } else {
-                                return Err(("Expected an identifier before '.' in a let decleration".to_string(), current_line));
+                                    });
+                                }
+
+                                AST::Call { name: call_name, args: call_args, line: call_line } => {
+                                    let new_call = handle_nested_arguments(AST::Call {
+                                        name: call_name,
+                                        args: call_args,
+                                        line: call_line,
+                                    }, AST::Dot)?;
+
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name: Some(lexer.slice().to_string()),
+                                        value: Box::new(new_call),
+                                        line,
+                                    });
+                                }
+
+                                AST::PropertyCall { object, property, args: call_args, line: call_line } => {
+                                    let new_call = handle_nested_arguments(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: call_args,
+                                        line: call_line,
+                                    }, AST::Dot)?;
+
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name: Some(lexer.slice().to_string()),
+                                        value: Box::new(new_call),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    return Err(("Expected an identifer before '.' in let declaration".to_string(), current_line));
+                                }
                             }
                         }
 
@@ -965,98 +1237,30 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }
 
                                     AST::Call { name: call_name, mut args, line } => {
-                                        let last_arg = args.pop().unwrap_or(AST::Null);
-
-                                        match last_arg {
-                                            AST::Identifer(ident_name) => {
-                                                args.push(AST::Call {
-                                                    name: ident_name,
-                                                    args: Vec::new(),
-                                                    line,
-                                                });
-
-                                                temp_ast.push(AST::LetDeclaration {
-                                                    name,
-                                                    value: Box::new(AST::Call {
-                                                        name: call_name,
-                                                        args,
-                                                        line,
-                                                    }),
-                                                    line,
-                                                });
-                                            }
-
-                                            AST::PropertyAccess { object, property, line } => {
-                                                args.push(AST::PropertyCall {
-                                                    object,
-                                                    property,
-                                                    args: Vec::new(),
-                                                    line,
-                                                });
-                                            }
-
-                                            AST::Null => {
-                                                args.push(AST::Identifer(lexer.slice().to_string()));
-                                            }
-                                            
-
-                                            _ => {
-                                                args.push(last_arg);
-                                                args.push(AST::Identifer(lexer.slice().to_string()));
-
-                                                temp_ast.push(AST::LetDeclaration {
-                                                    name,
-                                                    value: Box::new(AST::Call {
-                                                        name: call_name,
-                                                        args,
-                                                        line,
-                                                    }),
-                                                    line,
-                                                });
-                                            }
-                                        }
-                                    }
-
-                                    AST::PropertyCall { object, property, mut args, line } => { 
-                                        let last_arg = args.pop().unwrap_or(AST::Null);
-
-                                        match last_arg {
-                                            AST::Identifer(ident_name) => {
-                                                args.push(AST::Call {
-                                                    name: ident_name,
-                                                    args: Vec::new(),
-                                                    line,
-                                                });
-                                            }
-
-                                            AST::PropertyAccess { object, property, line } => {
-                                                args.push(AST::PropertyCall {
-                                                    object,
-                                                    property,
-                                                    args: Vec::new(),
-                                                    line,
-                                                });
-                                            }
-
-                                            AST::Null => {
-                                                args.push(AST::Identifer(lexer.slice().to_string()));
-                                            }
-
-                                            _ => {
-                                                args.push(last_arg);
-                                                args.push(AST::Identifer(lexer.slice().to_string()));
-                                            }
-                                        }
-
+                                        let new_call = handle_nested_arguments(AST::Call {
+                                            name: call_name,
+                                            args,
+                                            line,
+                                        }, AST::Identifer(lexer.slice().to_string()))?;
 
                                         temp_ast.push(AST::LetDeclaration {
                                             name,
-                                            value: Box::new(AST::PropertyCall {
-                                                object,
-                                                property,
-                                                args,
-                                                line,
-                                            }),
+                                            value: Box::new(new_call),
+                                            line,
+                                        });
+                                    }
+
+                                    AST::PropertyCall { object, property, mut args, line } => { 
+                                        let new_call = handle_nested_arguments(AST::PropertyCall {
+                                            object,
+                                            property,
+                                            args,
+                                            line,
+                                        }, AST::Identifer(lexer.slice().to_string()))?;
+
+                                        temp_ast.push(AST::LetDeclaration {
+                                            name,
+                                            value: Box::new(new_call),
                                             line,
                                         });
                                     }
@@ -1394,18 +1598,31 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     line,
                                 });
                             } else if let AST::PropertyAccess { object, property, line } = *value {
+                                let new_call = handle_nested_arguments(AST::PropertyAccess {
+                                    object,
+                                    property,
+                                    line,
+                                }, AST::Lparen)?;
+
                                 temp_ast.push(AST::LetDeclaration {
-                                    name: name,
-                                    value: Box::new(AST::PropertyCall {
-                                        object,
-                                        property,
-                                        args: Vec::new(),
-                                        line,
-                                    }),
+                                    name,
+                                    value: Box::new(new_call),
+                                    line,
+                                });
+                            } else if let AST::Call { name: call_name, args: call_args, line: call_line } = *value {
+                                let new_call = handle_nested_arguments(AST::Call {
+                                    name: call_name,
+                                    args: call_args,
+                                    line: call_line,
+                                }, AST::Lparen)?;
+
+                                temp_ast.push(AST::LetDeclaration {
+                                    name,
+                                    value: Box::new(new_call),
                                     line,
                                 });
                             } else {
-                                return Err((format!("Expected an identifier before '()' in a let declaration, got {:?}", value), current_line));
+                                return Err(("Expected a function call before '()'".to_string(), current_line));
                             }
                         }
 
@@ -2023,48 +2240,25 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        AST::Call { name, mut args, line } => {
-                            let arg = args.pop().unwrap_or(AST::Null);
+                        AST::Call { name, args, line } => {
+                            let new_call = handle_nested_arguments(AST::Call {
+                                name,
+                                args,
+                                line,
+                            }, AST::Minus)?;
 
-                            match arg {
-                                AST::Call { name: call_name, args: arg_args, line } => {
-                                    let mut new_arg_args = arg_args.clone();
+                            temp_ast.push(new_call);
+                        }
 
-                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
+                        AST::PropertyCall { object, property, args, line } => {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
+                                object,
+                                property,
+                                args,
+                                line,
+                            }, AST::Minus)?;
 
-                                    new_arg_args.push(AST::Subtraction {
-                                        left: Box::new(last_arg),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    });
-
-                                    args.push(AST::Call {
-                                        name: call_name,
-                                        args: new_arg_args,
-                                        line,
-                                    });
-
-                                    temp_ast.push(AST::Call {
-                                        name,
-                                        args,
-                                        line,
-                                    });
-                                }
-
-                                _ => {
-                                    args.push(AST::Subtraction {
-                                        left: Box::new(arg),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    });
-        
-                                    temp_ast.push(AST::Call {
-                                        name,
-                                        args,
-                                        line,
-                                    });
-                                }
-                            }
+                            temp_ast.push(new_call);
                         }
 
                         AST::IfStatement { mut condition, body, line } => {
@@ -2139,135 +2333,24 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                     match value {
                         AST::Call { name, mut args, line } => {
-                            let arg = args.pop().unwrap_or(AST::Null);
-
-                            match arg.clone() {
-                                AST::Addition { left, right, line } => {
-                                    if AST::Null == *right {
-                                        args.push(AST::Addition {
-                                            left,
-                                            right: Box::new(AST::Number(n)),
-                                            line,
-                                        });
-                                    } else {
-                                        args.push(arg);
-                                        args.push(AST::Number(n));
-                                    }
-                                }
-
-                                AST::Subtraction { left, right, line } => {
-                                    if AST::Null == *right {
-                                        args.push(AST::Subtraction {
-                                            left,
-                                            right: Box::new(AST::Number(n)),
-                                            line,
-                                        });
-                                    } else {
-                                        args.push(arg);
-                                        args.push(AST::Number(n));
-                                    }
-                                }
-
-                                AST::Call { name: call_name, args: arg_args, line } => {
-                                    let new_call = handle_nested_arguments(AST::Call {
-                                        name: call_name,
-                                        args: arg_args,
-                                        line,
-                                    }, AST::Number(n))?;
-
-                                    args.push(new_call);
-                                }
-
-                                AST::PropertyCall { object, property, args: arg_args, line } => {
-                                    let new_call = handle_nested_arguments(AST::PropertyCall {
-                                        object,
-                                        property,
-                                        args: arg_args,
-                                        line,
-                                    }, AST::Number(n))?;
-
-                                    args.push(new_call);
-                                }
-
-                                AST::Null => {
-                                    args.push(AST::Number(n));
-                                }
-
-                                _ => {
-                                    args.push(arg);
-                                    args.push(AST::Number(n));
-                                }
-                            }
-
-                            temp_ast.push(AST::Call {
+                            let new_call = handle_nested_arguments(AST::Call {
                                 name,
                                 args,
                                 line,
-                            });
+                            }, AST::Number(n))?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::PropertyCall { object, property, mut args, line } => {
-                            let arg = args.pop().unwrap_or(AST::Null);
-
-                            match arg.clone() {
-                                AST::Addition { left, right, line } => {
-                                    if AST::Null == *right {
-                                        args.push(AST::Addition {
-                                            left,
-                                            right: Box::new(AST::Number(n)),
-                                            line,
-                                        });
-                                    } else {
-                                        args.push(arg);
-                                        args.push(AST::Number(n));
-                                    }
-                                }
-
-                                AST::Subtraction { left, right, line } => {
-                                    if AST::Null == *right {
-                                        args.push(AST::Subtraction {
-                                            left,
-                                            right: Box::new(AST::Number(n)),
-                                            line,
-                                        });
-                                    } else {
-                                        args.push(arg);
-                                        args.push(AST::Number(n));
-                                    }
-                                }
-
-                                AST::Call { name: call_name, args: arg_args, line } => {
-                                    let new_call = handle_nested_arguments(AST::Call {
-                                        name: call_name,
-                                        args: arg_args,
-                                        line,
-                                    }, AST::Number(n))?;
-
-                                    args.push(new_call);
-                                }
-
-                                AST::PropertyCall { object, property, args: arg_args, line } => {
-                                    let new_call = handle_nested_arguments(AST::PropertyCall {
-                                        object,
-                                        property,
-                                        args: arg_args,
-                                        line,
-                                    }, AST::Number(n))?;
-
-                                    args.push(new_call);
-                                }
-
-                                _ => {
-                                    args.push(AST::Number(n));
-                                }
-                            }
-
-                            temp_ast.push(AST::PropertyCall {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
                                 object,
                                 property,
                                 args,
                                 line,
-                            });
+                            }, AST::Number(n))?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::LetDeclaration { name, value, line } => {
@@ -2294,119 +2377,28 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     }
                                 );
                             } else if let AST::Call { name: call_name, mut args, line } = *value {
-                                let last_arg = args.pop().unwrap_or(AST::Null);
-
-                                match last_arg.clone() {
-                                    AST::Addition { left, right, line } => {
-                                        if let AST::Null = *right {
-                                            args.push(AST::Addition {
-                                                left,
-                                                right: Box::new(AST::Number(n)),
-                                                line,
-                                            });
-                                        } else {
-                                            args.push(last_arg);
-                                            args.push(AST::Number(n));
-                                        }
-                                    }
-
-                                    AST::Subtraction { left, right: _, line } => {
-                                        args.push(AST::Subtraction {
-                                            left,
-                                            right: Box::new(AST::Number(n)),
-                                            line,
-                                        });
-                                    }
-
-                                    AST::Call { name: call_name, args: arg_args, line } => {
-                                        let mut new_arg_args = arg_args.clone();
-                                        new_arg_args.push(AST::Number(n));
-
-                                        args.push(AST::Call {
-                                            name: call_name,
-                                            args: new_arg_args,
-                                            line,
-                                        });
-                                    }
-
-                                    AST::Null => {
-                                        args.push(AST::Number(n));
-                                    },
-
-                                    _ => {
-                                        args.push(last_arg);
-                                        args.push(AST::Number(n));
-                                    }
-                                }
+                                let new_call = handle_nested_arguments(AST::Call {
+                                    name: call_name,
+                                    args,
+                                    line,
+                                }, AST::Number(n))?;
 
                                 temp_ast.push(AST::LetDeclaration {
                                     name,
-                                    value: Box::new(AST::Call {
-                                        name: call_name,
-                                        args,
-                                        line,
-                                    }),
+                                    value: Box::new(new_call),
                                     line,
                                 });
                             } else if let AST::PropertyCall { object, property, mut args, line } = *value {
-                                let last_arg = args.pop().unwrap_or(AST::Null);
-
-                                match last_arg.clone() {
-                                    AST::Addition { left, right, line } => {
-                                        if let AST::Null = *right {
-                                            args.push(AST::Addition {
-                                                left,
-                                                right: Box::new(AST::Number(n)),
-                                                line,
-                                            });
-                                        } else {
-                                            args.push(last_arg);
-                                            args.push(AST::Number(n));
-                                        }
-                                    }
-
-                                    AST::Subtraction { left, right, line } => {
-                                        if let AST::Null = *right {
-                                            args.push(AST::Subtraction {
-                                                left,
-                                                right: Box::new(AST::Number(n)),
-                                                line,
-                                            });
-                                        } else {
-                                            args.push(last_arg);
-                                            args.push(AST::Number(n));
-                                        }
-                                    }
-
-                                    AST::Call { name: call_name, args: arg_args, line } => {
-                                        let mut new_arg_args = arg_args.clone();
-                                        new_arg_args.push(AST::Number(n));
-
-                                        args.push(AST::Call {
-                                            name: call_name,
-                                            args: new_arg_args,
-                                            line,
-                                        });
-                                    }
-
-                                    AST::Null => {
-                                        args.push(AST::Number(n));
-                                    },
-
-                                    _ => {
-                                        args.push(last_arg);
-                                        args.push(AST::Number(n));
-                                    }
-                                }
+                                let new_call = handle_nested_arguments(AST::PropertyCall {
+                                    object,
+                                    property,
+                                    args,
+                                    line,
+                                }, AST::Number(n))?;
 
                                 temp_ast.push(AST::LetDeclaration {
                                     name,
-                                    value: Box::new(AST::PropertyCall {
-                                        object,
-                                        property,
-                                        args,
-                                        line,
-                                    }),
+                                    value: Box::new(new_call),
                                     line,
                                 });
                             } else {
@@ -2707,164 +2699,25 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = temp_ast.pop().unwrap_or(AST::Null);
     
                     match value {
-                        AST::Call { name, mut args, line } => {
-                            let arg = args.pop().unwrap_or(AST::Null);
-
-                            match arg.clone() {
-                                AST::Addition { left, right, line } => {
-                                    if AST::Null == *right {
-                                        args.push(AST::Addition {
-                                            left,
-                                            right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                            line,
-                                        });
-                                    } else {
-                                        args.push(arg);
-                                        args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                    }
-                                }
-
-                                AST::Subtraction { left, right, line } => {
-                                    if AST::Null == *right {
-                                        args.push(AST::Subtraction {
-                                            left,
-                                            right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                            line,
-                                        });
-                                    } else {
-                                        args.push(arg);
-                                        args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                    }
-                                }
-
-                                AST::Call { name: call_name, args: arg_args, line } => {
-                                    let mut new_arg_args = arg_args.clone();
-
-                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
-
-                                    match last_arg.clone() {
-                                        AST::Addition { left, right, line } => {
-                                            if AST::Null == *right {
-                                                new_arg_args.push(AST::Addition {
-                                                    left,
-                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                                    line,
-                                                });
-                                            } else {
-                                                new_arg_args.push(last_arg);
-                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                            }
-                                        }
-
-                                        AST::Subtraction { left, right, line } => {
-                                            if AST::Null == *right {
-                                                new_arg_args.push(AST::Subtraction {
-                                                    left,
-                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                                    line,
-                                                });
-                                            } else {
-                                                new_arg_args.push(last_arg);
-                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                            }
-                                        }
-
-                                        AST::Null => {
-                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                        }
-
-                                        _ => {
-                                            new_arg_args.push(last_arg);
-                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                        }
-                                    }
-
-                                    args.push(AST::Call {
-                                        name: call_name,
-                                        args: new_arg_args,
-                                        line,
-                                    });
-                                }
-
-                                AST::PropertyCall { object, property, args: arg_args, line } => {
-                                    let mut new_arg_args = arg_args.clone();
-                                    
-                                    let last_arg = new_arg_args.pop().unwrap_or(AST::Null);
-
-                                    match last_arg.clone() {
-                                        AST::Addition { left, right, line } => {
-                                            if AST::Null == *right {
-                                                new_arg_args.push(AST::Addition {
-                                                    left,
-                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                                    line,
-                                                });
-                                            } else {
-                                                new_arg_args.push(last_arg);
-                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                            }
-                                        }
-
-                                        AST::Subtraction { left, right, line } => {
-                                            if AST::Null == *right {
-                                                new_arg_args.push(AST::Subtraction {
-                                                    left,
-                                                    right: Box::new(AST::Float(lexer.slice().parse().unwrap())),
-                                                    line,
-                                                });
-                                            } else {
-                                                new_arg_args.push(last_arg);
-                                                new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                            }
-                                        }
-
-                                        AST::Null => {
-                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                        }
-
-                                        _ => {
-                                            new_arg_args.push(last_arg);
-                                            new_arg_args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                        }
-                                    }
-
-                                    args.push(AST::PropertyCall {
-                                        object,
-                                        property,
-                                        args: new_arg_args,
-                                        line,
-                                    });
-                                }
-
-                                AST::Null => {
-                                    args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                }
-
-                                _ => {
-                                    args.push(arg);
-
-                                    args.push(AST::Float(lexer.slice().parse().unwrap()));
-                                }
-                            }
-
-                            temp_ast.push(AST::Call {
+                        AST::Call { name, args, line } => {
+                            let new_call = handle_nested_arguments(AST::Call {
                                 name,
                                 args,
                                 line,
-                            });
+                            }, AST::Float(lexer.slice().parse().unwrap()))?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::PropertyCall { object, property, args, line } => {
-                            let mut args = args.clone();
-    
-                            args.push(AST::Float(lexer.slice().parse().unwrap()));
-    
-                            temp_ast.push(AST::PropertyCall {
+                            let new_call = handle_nested_arguments(AST::PropertyCall {
                                 object,
                                 property,
                                 args,
                                 line,
-                            });
+                            }, AST::Float(lexer.slice().parse().unwrap()))?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::LetDeclaration { name, value, line } => {
@@ -3075,12 +2928,11 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::PropertyCall { object, property, args, line } => {
-                            temp_ast.push(AST::PropertyCall {
-                                object,
-                                property,
-                                args,
-                                line,
-                            });
+                            let new_call = handle_nested_arguments(
+                                AST::PropertyCall { object, property, args, line }, AST::Rparen
+                            )?;
+
+                            temp_ast.push(new_call);
                         }
 
                         AST::Function { name, args, body, line } => {
