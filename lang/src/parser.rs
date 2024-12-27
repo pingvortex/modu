@@ -789,28 +789,11 @@ pub fn clean_args(obj: AST) -> AST {
 
             for arg in args {
                 match arg {
-                    AST::Call { name: arg_name, args: arg_args, line: arg_line } => {
-                        new_args.push(clean_args(AST::Call {
-                            name: arg_name,
-                            args: arg_args,
-                            line: arg_line,
-                        }));
-                    }
-
-                    AST::PropertyCall { object, property, args: arg_args, line: arg_line } => {
-                        new_args.push(clean_args(AST::PropertyCall {
-                            object,
-                            property,
-                            args: arg_args,
-                            line: arg_line,
-                        }));
-                    }
-
                     AST::Rparen
                     | AST::Comma => {}
 
                     _ => {
-                        new_args.push(arg);
+                        new_args.push(clean_args(arg));
                     }
                 }
             }
@@ -827,28 +810,11 @@ pub fn clean_args(obj: AST) -> AST {
 
             for arg in args {
                 match arg {
-                    AST::Call { name: arg_name, args: arg_args, line: arg_line } => {
-                        new_args.push(clean_args(AST::Call {
-                            name: arg_name,
-                            args: arg_args,
-                            line: arg_line,
-                        }));
-                    }
-
-                    AST::PropertyCall { object, property, args: arg_args, line: arg_line } => {
-                        new_args.push(clean_args(AST::PropertyCall {
-                            object,
-                            property,
-                            args: arg_args,
-                            line: arg_line,
-                        }));
-                    }
-
                     AST::Rparen
                     | AST::Comma => {}
 
                     _ => {
-                        new_args.push(arg);
+                        new_args.push(clean_args(arg));
                     }
                 }
             }
@@ -890,6 +856,22 @@ pub fn clean_args(obj: AST) -> AST {
             }
         }
 
+        AST::Addition { left, right, line } => {
+            AST::Addition {
+                left: Box::new(clean_args(*left)),
+                right: Box::new(clean_args(*right)),
+                line,
+            }
+        }
+
+        AST::Subtraction { left, right, line } => {
+            AST::Subtraction {
+                left: Box::new(clean_args(*left)),
+                right: Box::new(clean_args(*right)),
+                line,
+            }
+        }
+
         _ => obj
     }
 }
@@ -912,6 +894,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         let mut body_starts = false;
 
         while let Some(token) = lexer.next() {
+            dbg!(&temp_ast);
             match token {
                 Ok(Token::Import) => {
                     temp_ast.push(AST::Import {

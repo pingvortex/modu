@@ -44,7 +44,6 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                     if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
                                         return call_fn(args, context);
                                     } else {
-                                        dbg!(&args);
                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                     }
                                 }
