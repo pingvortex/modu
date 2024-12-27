@@ -908,10 +908,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
         let mut lexer = Token::lexer(line);
 
-        if verbose {
-            dbg!(lexer.clone().spanned().collect::<Vec<_>>());
-        }
-
         let mut temp_ast = Vec::new();
         let mut body_starts = false;
 
@@ -1121,9 +1117,13 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                             match value  {
                                 AST::Identifer(ident) => {
-                                    temp_ast.push(AST::PropertyAccess {
-                                        object: Some(ident),
-                                        property: None,
+                                    temp_ast.push(AST::LetDeclaration {
+                                        name,
+                                        value: Box::new(AST::PropertyAccess {
+                                            object: Some(ident),
+                                            property: None,
+                                            line,
+                                        }),
                                         line,
                                     });
                                 }
@@ -1598,15 +1598,14 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     line,
                                 });
                             } else if let AST::PropertyAccess { object, property, line } = *value {
-                                let new_call = handle_nested_arguments(AST::PropertyAccess {
-                                    object,
-                                    property,
-                                    line,
-                                }, AST::Lparen)?;
-
                                 temp_ast.push(AST::LetDeclaration {
-                                    name,
-                                    value: Box::new(new_call),
+                                    name: name,
+                                    value: Box::new(AST::PropertyCall {
+                                        object,
+                                        property,
+                                        args: Vec::new(),
+                                        line,
+                                    }),
                                     line,
                                 });
                             } else if let AST::Call { name: call_name, args: call_args, line: call_line } = *value {
@@ -2332,7 +2331,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = temp_ast.pop().unwrap_or(AST::Null);
 
                     match value {
-                        AST::Call { name, mut args, line } => {
+                        AST::Call { name, args, line } => {
                             let new_call = handle_nested_arguments(AST::Call {
                                 name,
                                 args,
@@ -2376,7 +2375,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                         line,
                                     }
                                 );
-                            } else if let AST::Call { name: call_name, mut args, line } = *value {
+                            } else if let AST::Call { name: call_name, args, line } = *value {
                                 let new_call = handle_nested_arguments(AST::Call {
                                     name: call_name,
                                     args,
