@@ -119,10 +119,18 @@ pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
         Ok(AST::Number(a)) => {
             match eval(args[1].clone(), &mut HashMap::new()) {
                 Ok(AST::Number(b)) => {
+                    if b < 0 {
+                        return Err("pow requires a positive number".to_string());
+                    }
+
                     return Ok(AST::Number(a.pow(b as u32)));
                 }
 
                 Ok(AST::Float(b)) => {
+                    if b < 0.0 {
+                        return Err("pow requires a positive number".to_string());
+                    }
+
                     return Ok(AST::Float((a as f64).powf(b)));
                 }
 
