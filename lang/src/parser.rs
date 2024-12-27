@@ -894,7 +894,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         let mut body_starts = false;
 
         while let Some(token) = lexer.next() {
-            dbg!(&temp_ast);
             match token {
                 Ok(Token::Import) => {
                     temp_ast.push(AST::Import {
