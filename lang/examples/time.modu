@@ -6,4 +6,4 @@ let local = time.to_local_date_time(unix)
 
 print("Unix: ", unix)
 print("ISO: ", iso)
-print("Local: ", local) 
+print("Local: ", local)
