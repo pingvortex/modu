@@ -18,6 +18,7 @@ fn main() {
     run <file>     - Run a Modu file
     repl           - Start the Modu REPL
     server [port]  - Start the Modu server, default port is 2424
+    init           - Initialize a new Modu package
     login          - Login with Modu Packages");
         return;
     }
@@ -26,12 +27,10 @@ fn main() {
 
     match action.as_str() {
         "run" => cli::run::run(),
-
         "repl" => cli::repl::repl(),
-
         "server" => cli::server::server(),
-
         "login" => cli::login::login(),
+        "init" => cli::init::init(),
 
         _ => {
             println!("Invalid action");
