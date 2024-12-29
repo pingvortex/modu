@@ -17,7 +17,8 @@ fn main() {
         println!("Commands:
     run <file>     - Run a Modu file
     repl           - Start the Modu REPL
-    server [port]  - Start the Modu server, default port is 2424");
+    server [port]  - Start the Modu server, default port is 2424
+    login          - Login with Modu Packages");
         return;
     }
 
@@ -29,6 +30,8 @@ fn main() {
         "repl" => cli::repl::repl(),
 
         "server" => cli::server::server(),
+
+        "login" => cli::login::login(),
 
         _ => {
             println!("Invalid action");
