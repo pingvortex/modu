@@ -29,7 +29,7 @@ pub fn install() {
 
     let mut client = reqwest::blocking::Client::new();
 
-    let response = client.get(&format!("https://modu-packages.vercel.app//api/v1/packages/{}/{}", name, version)).send().unwrap();
+    let response = client.get(&format!("https://modu-packages.vercel.app/api/v1/packages/{}/{}?isDownload=true", name, version)).send().unwrap();
 
     if response.status().as_u16() != 200 {
         let text = response.text().unwrap();
