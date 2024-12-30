@@ -23,17 +23,25 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         let mut depth = 0;
 
                                         for expr in body {
-                                            if let AST::Return { value, line: _ } = expr {
-                                                return eval(*value.clone(), &mut new_context);
-                                            }
-
                                             if depth > 100 {
                                                 return Err("Maximum recursion depth exceeded".to_string());
                                             }
 
                                             depth += 1;
 
-                                            eval(expr.clone(), &mut new_context)?;
+                                            match eval(expr.clone(), &mut new_context) {
+                                                Ok(AST::Null) => {
+                                                    continue;
+                                                }
+
+                                                Ok(v) => {
+                                                    return Ok(v);
+                                                }
+
+                                                Err(e) => {
+                                                    return Err(e);
+                                                }
+                                            }
                                         }
                                     } else {                                        
                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
@@ -330,7 +338,19 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 AST::Boolean(b) => {
                     if b {
                         for expr in body {
-                            eval(expr, context)?;
+                            match eval(expr, context) {
+                                Ok(AST::Null) => {
+                                    continue;
+                                }
+
+                                Ok(v) => {
+                                    return Ok(v);
+                                },
+
+                                Err(e) => {
+                                    return Err(e);
+                                }
+                            }
                         }
                     }
                 }
@@ -463,6 +483,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                     return Err("Object not found".to_string());
                 }
             }
+        }
+
+        AST::Return { value, line: _ } => {
+            return Ok(*value);
         }
 
         _ => {
