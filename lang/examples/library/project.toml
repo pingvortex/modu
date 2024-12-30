@@ -1,4 +1,4 @@
 [package]
 name = "test"
-version = "2.0.3"
-description = "we got descriptions now (i forgot to update backend (forgot to reboot backend))"
+version = "2.0.4"
+description = "Test package for testing packages"

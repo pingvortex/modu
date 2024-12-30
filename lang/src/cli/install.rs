@@ -2,31 +2,7 @@ use std::io::{Read, Write};
 
 use toml;
 
-pub fn install() {
-    let mut content = String::new();
-    let file = std::fs::File::open("project.toml");
-
-    if file.is_err() {
-        println!("No project.toml found. Run `modu init` to create a new project");
-        return;
-    }
-
-    file.unwrap().read_to_string(&mut content).unwrap();
-
-    let args = std::env::args().collect::<Vec<String>>();
-
-    if args.len() < 3 {
-        println!("Usage: modu install <name>");
-        return;
-    }
-
-    let name = &(args[2].clone().split("@").collect::<Vec<&str>>()[0].to_string());
-    
-    let version = match args[2].clone().split("@").collect::<Vec<&str>>().len() {
-        1 => "latest".to_string(),
-        _ => args[2].clone().split("@").collect::<Vec<&str>>()[1].to_string()
-    };
-
+fn install_package(name: &str, version: &str) -> Result<serde_json::Value, String> {
     let mut client = reqwest::blocking::Client::new();
 
     let response = client.get(&format!("https://modu-packages.vercel.app/api/v1/packages/{}/{}?isDownload=true", name, version)).send().unwrap();
@@ -36,7 +12,7 @@ pub fn install() {
 
         println!("Error: {}", text);
 
-        return;
+        return Err(text);
     }
 
     let package = response.json::<serde_json::Value>().unwrap();
@@ -69,6 +45,23 @@ pub fn install() {
         }
     }
 
+    Ok(package) 
+}
+
+pub fn install() {
+    let mut content = String::new();
+    let file = std::fs::File::open("project.toml");
+
+    if file.is_err() {
+        println!("No project.toml found. Run `modu init` to create a new project");
+        return;
+    }
+
+    file.unwrap().read_to_string(&mut content).unwrap();
+
+    let args = std::env::args().collect::<Vec<String>>();
+
+
     let toml = toml::from_str::<toml::Value>(&content).unwrap();
     let mut toml = toml.as_table().unwrap().clone();
 
@@ -78,6 +71,38 @@ pub fn install() {
         None => {
             toml.insert("dependencies".to_string(), toml::Value::Table(toml::value::Table::new()));
             toml.get_mut("dependencies").unwrap().as_table_mut().unwrap()
+        }
+    };
+
+    if args.len() < 3 {
+        for (name, version) in dependencies.iter() {
+            let package = match install_package(name, version.as_str().unwrap()) {
+                Ok(package) => {
+                    println!("Package {} installed\n", name);
+                    package
+                },
+                Err(_) => {
+                    println!("Failed to install package {}", name);
+                    return;
+                }
+            };
+        }
+
+        return;
+    }
+
+    let name = &(args[2].clone().split("@").collect::<Vec<&str>>()[0].to_string());
+    
+    let version = match args[2].clone().split("@").collect::<Vec<&str>>().len() {
+        1 => "latest".to_string(),
+        _ => args[2].clone().split("@").collect::<Vec<&str>>()[1].to_string()
+    };
+
+    let package = match install_package(name, &version) {
+        Ok(package) => package,
+        Err(_) => {
+            println!("Failed to install package {}", name);
+            return;
         }
     };
 
