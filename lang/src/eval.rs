@@ -166,7 +166,33 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                         }
                     }
                 } else {
-                    return Err(format!("Package {} not found", file));
+                    if std::fs::exists(format!(".modu/packages/{}", file)).unwrap() {
+                        let mut new_context = context.clone();
+
+                        let content = std::fs::read_to_string(format!(".modu/packages/{}/lib.modu", file)).unwrap();
+
+                        match crate::parser::parse(&content, &mut new_context) {
+                            Ok(_) => {
+                                let insert_as = as_.unwrap();
+
+                                if insert_as == "*" {
+                                    for (name, value) in new_context {
+                                        context.insert(name, value);
+                                    }
+
+                                    return Ok(AST::Null);
+                                } else {
+                                    context.insert(insert_as, AST::Object { properties: new_context, line });
+                                }
+                            }
+
+                            _ => {
+                                return Err(format!("Failed to parse package {}", file));
+                            }
+                        }
+                    } else {
+                        return Err(format!("Package {} not found", file));
+                    }
                 }
             }
         }

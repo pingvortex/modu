@@ -1,0 +1,6 @@
+[dependencies]
+test = "2.0.3"
+
+[package]
+name = "using_packages"
+version = "1.0.0"

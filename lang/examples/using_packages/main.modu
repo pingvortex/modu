@@ -1,0 +1,3 @@
+import "test" as test
+
+print(test.new_feature("abc"))
