@@ -110,6 +110,8 @@ pub enum AST {
 
     Rparen,
 
+    RBracket,
+
     Comma,
 
     Dot,

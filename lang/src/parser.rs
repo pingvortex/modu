@@ -592,7 +592,13 @@ pub fn clean_args(obj: AST) -> AST {
             let mut new_body = vec![];
 
             for expr in body {
-                new_body.push(clean_args(expr));
+                match expr {
+                    AST::RBracket => {}
+
+                    _ => {
+                        new_body.push(clean_args(expr));
+                    }
+                }
             }
 
             AST::IfStatement {
@@ -606,7 +612,13 @@ pub fn clean_args(obj: AST) -> AST {
             let mut new_body = vec![];
 
             for expr in body {
-                new_body.push(clean_args(expr));
+                match expr {
+                    AST::RBracket => {}
+
+                    _ => {
+                        new_body.push(clean_args(expr));
+                    }
+                }
             }
 
             AST::Function {
@@ -2597,7 +2609,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = ast.pop().unwrap_or(AST::Null);
 
                     match value {
-                        AST::Function { name, args, body, line } => {
+                        AST::Function { name, args, mut body, line } => {
+                            body.push(AST::RBracket);
+
                             ast.push(AST::Function {
                                 name,
                                 args,
@@ -2608,7 +2622,9 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             bodies_deep -= 1;
                         }
 
-                        AST::IfStatement { condition, body, line } => {
+                        AST::IfStatement { condition, mut body, line } => {
+                            body.push(AST::RBracket);
+
                             ast.push(AST::IfStatement {
                                 condition,
                                 body,
