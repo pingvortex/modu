@@ -1,4 +1,4 @@
 [package]
 name = "test"
-version = "2.0.4"
-description = "Test package for testing packages"
+version = "2.0.5"
+description = "A package im using to test the package system, this is not a package for units tests or shit"
