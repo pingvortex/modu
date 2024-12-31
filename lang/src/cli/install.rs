@@ -37,9 +37,30 @@ fn install_package(name: &str, version: &str) -> Result<serde_json::Value, Strin
         let mut file = archive.by_index(i).unwrap();
         let path = ".modu/packages/".to_string() + name + "/" + file.name();
 
-        if file.name().ends_with("/") {
-            std::fs::create_dir_all(path).unwrap();
+        if file.name().contains("/") || file.name().contains("\\") {
+            if file.name().contains("/") {
+                let mut path = path.split("/").collect::<Vec<&str>>();
+                path.pop();
+
+                std::fs::create_dir_all(path.join("/")).unwrap();
+            } else {
+                let mut path = path.split("\\").collect::<Vec<&str>>();
+                path.pop();
+
+                std::fs::create_dir_all(path.join("\\")).unwrap();
+            }
+
+
+            let mut out = std::fs::File::create(".modu/packages/".to_string() + name + "/" + file.name()).unwrap();
+            std::io::copy(&mut file, &mut out).unwrap();
+            
         } else {
+            #[cfg(windows)]
+            let path = path.replace("/", "\\");
+            
+            #[cfg(not(windows))]
+            let path = path.replace("\\", "/");
+
             let mut out = std::fs::File::create(path).unwrap();
             std::io::copy(&mut file, &mut out).unwrap();
         }

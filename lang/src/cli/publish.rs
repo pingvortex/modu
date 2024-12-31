@@ -4,7 +4,7 @@ use toml;
 use zip;
 use serde_json::json;
 
-static BLOCKLIST: [&str; 3] = [".git", ".gitignore", ".modu"];
+static BLOCKLIST: [&str; 4] = [".git", ".gitignore", ".modu", ".github"];
 
 fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) {
     for entry in std::fs::read_dir(dir).unwrap() {
@@ -14,7 +14,7 @@ fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) 
         let mut do_break = false;
 
         for item in BLOCKLIST.iter() {
-            if path.to_str().unwrap().replace("./", "") == *item {
+            if path.to_str().unwrap().replace("\\", "/") == format!("./{}", item) {
                 println!("Ignoring {}", path.to_str().unwrap());
                 do_break = true;
             }
@@ -33,7 +33,7 @@ fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) 
                 file.read_to_string(&mut gitignore_content).unwrap();
 
                 for line in gitignore_content.lines() {
-                    if path.to_str().unwrap().replace("./", "") == line {
+                    if path.to_str().unwrap().replace("\\", "/") == format!("./{}", line) {
                         println!("Ignoring {}", path.to_str().unwrap());
                         do_break = true;
                     }
