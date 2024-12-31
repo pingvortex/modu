@@ -1,6 +1,16 @@
 use std::collections::HashMap;
 use std::process::Command;
 use crate::ast::AST;
+use std::os::windows::process::CommandExt;
+
+fn clean_command(cmd: &str) -> String {
+	let clean = cmd.trim()
+		.trim_matches('"')
+		.trim_matches('\'')
+		.to_string();
+
+	return clean;
+}
 
 pub fn exec(args: Vec<AST>, _context: &mut HashMap<String, AST>) -> Result<AST, String> {
 	if args.len() != 1 {
@@ -13,8 +23,10 @@ pub fn exec(args: Vec<AST>, _context: &mut HashMap<String, AST>) -> Result<AST, 
 	};
 
 	#[cfg(windows)]
-	let output = Command::new("cmd")
-		.args(["/C", command])
+	let output = Command::new("C:\\Windows\\System32\\cmd.exe")
+		.arg("/C")
+		.arg(clean_command(command))
+		.creation_flags(0x08000000)
 		.output();
 
 	#[cfg(not(windows))]
@@ -24,11 +36,13 @@ pub fn exec(args: Vec<AST>, _context: &mut HashMap<String, AST>) -> Result<AST, 
 
 	match output {
 		Ok(output) => {
-			let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-			let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-			let result = if stderr.is_empty() { stdout } else { stderr };
-			
-			Ok(AST::String(result))
+			let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+			if output.status.success() {
+				Ok(AST::String(stdout))
+			} else {
+				let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+				Err(stderr)
+			}
 		},
 		Err(e) => Err(format!("Command execution failed: {}", e))
 	}
