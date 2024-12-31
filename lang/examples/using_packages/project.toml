@@ -1,5 +1,5 @@
 [dependencies]
-test = "2.0.5"
+test = "2.0.7"
 
 [package]
 name = "using_packages"
