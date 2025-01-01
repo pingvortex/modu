@@ -206,7 +206,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
         }
 
         AST::PropertyCall { object, property, args, line: _ } => {
-            match object {
+            match object.clone() {
                 Some(name) => {
                     match context.get(&name) {
                         Some(value) => {
@@ -221,6 +221,12 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                                                         for (i, arg) in f_args.iter().enumerate() {
                                                             new_context.insert(arg.clone(), eval(args[i].clone(), &mut new_context.clone())?);
+                                                        }
+
+                                                        new_context.remove(name);
+                                                        
+                                                        for prop in properties {
+                                                            new_context.insert(prop.0.clone(), prop.1.clone());
                                                         }
 
                                                         for expr in body {
