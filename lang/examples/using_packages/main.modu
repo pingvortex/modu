@@ -1,0 +1,6 @@
+import "test" as test
+import "basic_loops" as loops
+
+print(test.new_feature("abc"))
+
+loops.loop(print, 0, 5);
