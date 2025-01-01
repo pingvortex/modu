@@ -23,17 +23,25 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                         let mut depth = 0;
 
                                         for expr in body {
-                                            if let AST::Return { value, line: _ } = expr {
-                                                return eval(*value.clone(), &mut new_context);
-                                            }
-
                                             if depth > 100 {
                                                 return Err("Maximum recursion depth exceeded".to_string());
                                             }
 
                                             depth += 1;
 
-                                            eval(expr.clone(), &mut new_context)?;
+                                            match eval(expr.clone(), &mut new_context) {
+                                                Ok(AST::Null) => {
+                                                    continue;
+                                                }
+
+                                                Ok(v) => {
+                                                    return Ok(v);
+                                                }
+
+                                                Err(e) => {
+                                                    return Err(e);
+                                                }
+                                            }
                                         }
                                     } else {                                        
                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
@@ -166,13 +174,39 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                         }
                     }
                 } else {
-                    return Err(format!("Package {} not found", file));
+                    if std::fs::exists(format!(".modu/packages/{}", file)).unwrap() {
+                        let mut new_context = context.clone();
+
+                        let content = std::fs::read_to_string(format!(".modu/packages/{}/lib.modu", file)).unwrap();
+
+                        match crate::parser::parse(&content, &mut new_context) {
+                            Ok(_) => {
+                                let insert_as = as_.unwrap();
+
+                                if insert_as == "*" {
+                                    for (name, value) in new_context {
+                                        context.insert(name, value);
+                                    }
+
+                                    return Ok(AST::Null);
+                                } else {
+                                    context.insert(insert_as, AST::Object { properties: new_context, line });
+                                }
+                            }
+
+                            _ => {
+                                return Err(format!("Failed to parse package {}", file));
+                            }
+                        }
+                    } else {
+                        return Err(format!("Package {} not found", file));
+                    }
                 }
             }
         }
 
         AST::PropertyCall { object, property, args, line: _ } => {
-            match object {
+            match object.clone() {
                 Some(name) => {
                     match context.get(&name) {
                         Some(value) => {
@@ -187,6 +221,12 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                                                         for (i, arg) in f_args.iter().enumerate() {
                                                             new_context.insert(arg.clone(), eval(args[i].clone(), &mut new_context.clone())?);
+                                                        }
+
+                                                        new_context.remove(name);
+                                                        
+                                                        for prop in properties {
+                                                            new_context.insert(prop.0.clone(), prop.1.clone());
                                                         }
 
                                                         for expr in body {
@@ -304,7 +344,19 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 AST::Boolean(b) => {
                     if b {
                         for expr in body {
-                            eval(expr, context)?;
+                            match eval(expr, context) {
+                                Ok(AST::Null) => {
+                                    continue;
+                                }
+
+                                Ok(v) => {
+                                    return Ok(v);
+                                },
+
+                                Err(e) => {
+                                    return Err(e);
+                                }
+                            }
                         }
                     }
                 }
@@ -437,6 +489,10 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                     return Err("Object not found".to_string());
                 }
             }
+        }
+
+        AST::Return { value, line: _ } => {
+            return Ok(*value);
         }
 
         _ => {

@@ -6,7 +6,7 @@ Can be used through [The Web IDE](../ide) btw
 
 From [crates.io](https://crates.io/crates/modu)
 ```bash
-$ cargo install modu
+$ cargo +nightly install modu
 ```
 
 More methods coming soon \

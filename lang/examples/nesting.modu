@@ -6,6 +6,14 @@ fn example(a) {
             print("HELLO, WORLD");
         }
     }
+
+    if a != 3 {
+        print("Goodbye, World");
+
+        if a - 1 - -1 == 3 {
+            print("GOODBYE, WORLD");
+        }
+    }
 }
 
 fn test_nesting(a, b, c) {
@@ -14,14 +22,30 @@ fn test_nesting(a, b, c) {
 
         if c == 3 {
             example(c);
+
+            if a == 2 {
+                example(5);
+            }
+
+            if a != 2 {
+                example(a);
+            }
         }
     }
 
     if a != b {
         print("a is not equal to b");
 
-        if c == 3 {
+        if a == 1 {
             example(c);
+        }
+    }
+
+    if a != c {
+        print("a is not equal to c");
+
+        if b == 3 {
+            example(b);
         }
     }
 }
