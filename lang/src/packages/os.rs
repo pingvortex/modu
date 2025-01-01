@@ -22,17 +22,22 @@ pub fn exec(args: Vec<AST>, _context: &mut HashMap<String, AST>) -> Result<AST, 
 		_ => return Err("os.exec argument must be a string".to_string()),
 	};
 
-	#[cfg(windows)]
-	let output = Command::new("C:\\Windows\\System32\\cmd.exe")
-		.arg("/C")
-		.arg(clean_command(command))
-		.creation_flags(0x08000000)
-		.output();
+	let cleaned = clean_command(command);
 
-	#[cfg(not(windows))]
-	let output = Command::new("sh")
-		.args(["-c", command])
-		.output();
+	let output = {
+		#[cfg(windows)] {
+			Command::new("C:\\Windows\\System32\\cmd.exe")
+				.arg("/C")
+				.arg(&cleaned)
+				.creation_flags(0x08000000)
+				.output()
+		}
+		#[cfg(not(windows))] {
+			Command::new("sh")
+				.args(["-c", &cleaned])
+				.output()
+		}
+	};
 
 	match output {
 		Ok(output) => {
