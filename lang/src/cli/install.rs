@@ -50,8 +50,13 @@ fn install_package(name: &str, version: &str) -> Result<serde_json::Value, Strin
                 std::fs::create_dir_all(path.join("\\")).unwrap();
             }
 
+            #[cfg(windows)]
+            let path = (".modu/packages/".to_string() + name + "/" + file.name()).replace("/", "\\");
 
-            let mut out = std::fs::File::create(".modu/packages/".to_string() + name + "/" + file.name()).unwrap();
+            #[cfg(not(windows))]
+            let path = (".modu/packages/".to_string() + name + "/" + file.name()).replace("\\", "/");
+
+            let mut out = std::fs::File::create(path).unwrap();
             std::io::copy(&mut file, &mut out).unwrap();
             
         } else {
