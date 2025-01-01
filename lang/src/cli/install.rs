@@ -2,10 +2,10 @@ use std::io::{Read, Write};
 
 use toml;
 
-fn install_package(name: &str, version: &str) -> Result<serde_json::Value, String> {
+fn install_package(backend: &str, name: &str, version: &str) -> Result<serde_json::Value, String> {
     let mut client = reqwest::blocking::Client::new();
 
-    let response = client.get(&format!("https://modu-packages.vercel.app/api/v1/packages/{}/{}?isDownload=true", name, version)).send().unwrap();
+    let response = client.get(&format!("{}/api/v1/packages/{}/{}?isDownload=true", backend, name, version)).send().unwrap();
 
     if response.status().as_u16() != 200 {
         let text = response.text().unwrap();
@@ -87,7 +87,6 @@ pub fn install() {
 
     let args = std::env::args().collect::<Vec<String>>();
 
-
     let toml = toml::from_str::<toml::Value>(&content).unwrap();
     let mut toml = toml.as_table().unwrap().clone();
 
@@ -100,9 +99,45 @@ pub fn install() {
         }
     };
 
+    let mut backend_url = "https://modu-packages.vercel.app".to_string();
+
+    let mut config_file;
+    let mut path;
+
+    if cfg!(windows) {
+        let home = std::env::var("USERPROFILE").unwrap();
+        path = format!("{}\\.modu\\config.toml", home);
+    } else {
+        let home = std::env::var("HOME").unwrap();
+        path = format!("{}/.modu/config.toml", home);
+    }
+
+    config_file = std::fs::OpenOptions::new()
+        .write(true)
+        .read(true)
+        .create(true)
+        .open(path.clone());
+
+    if config_file.is_ok() {
+        let mut config_file_content = String::new();
+        config_file.unwrap().read_to_string(&mut config_file_content);
+        
+        if config_file_content.len() > 0 {
+            let config_toml = toml::from_str::<toml::Value>(&config_file_content).unwrap();
+            let mut table = config_toml.as_table().unwrap();
+
+            backend_url = match table.get("backend") {
+                Some(backend) => backend.to_string().replace("\"", ""),
+                None => backend_url
+            };
+        }
+    }
+
+    println!("Installing packages, using backend {}\n", backend_url);
+
     if args.len() < 3 {
         for (name, version) in dependencies.iter() {
-            let package = match install_package(name, version.as_str().unwrap()) {
+            let package = match install_package(&backend_url, name, version.as_str().unwrap()) {
                 Ok(package) => {
                     println!("Package {} installed\n", name);
                     package
@@ -124,7 +159,7 @@ pub fn install() {
         _ => args[2].clone().split("@").collect::<Vec<&str>>()[1].to_string()
     };
 
-    let package = match install_package(name, &version) {
+    let package = match install_package(&backend_url, name, &version) {
         Ok(package) => package,
         Err(_) => {
             println!("Failed to install package {}", name);

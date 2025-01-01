@@ -86,17 +86,6 @@ pub fn publish() {
 
     println!("Publishing {} v{}", name, version);
 
-    print!("Confirm action (y/N): ");
-    std::io::stdout().flush().unwrap();
-
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input).unwrap();
-
-    if input.trim() != "y" {
-        println!("Aborted");
-        return;
-    }
-
     let lib_exists = std::path::Path::new("lib.modu").exists();
 
     if !lib_exists {
@@ -113,29 +102,52 @@ pub fn publish() {
     println!("[1/2] Package compressed");
 
     let token: String;
+    let backend_url: String;
+    let mut path = String::new();
 
     if cfg!(windows) {
         let home = std::env::var("USERPROFILE").unwrap();
-        let path = format!("{}\\.modu\\token", home);
-        let mut token_file = std::fs::File::open(path).unwrap();
-        let mut token_contents = String::new();
-        token_file.read_to_string(&mut token_contents).unwrap();
-        token = token_contents;
+        path = format!("{}\\.modu\\config.toml", home);
     } else {
         let home = std::env::var("HOME").unwrap();
-        let path = format!("{}/.modu/token", home);
-        let mut token_file = std::fs::File::open(path).unwrap();
-        let mut token_contents = String::new();
-        token_file.read_to_string(&mut token_contents).unwrap();
-        token = token_contents;
+        path = format!("{}/.modu/config.toml", home);
     }
 
-    if token.len() == 0 {
+    let config_file = std::fs::OpenOptions::new()
+        .write(true)
+        .read(true)
+        .create(true)
+        .open(path.clone());
+
+    if config_file.is_err() {
         println!("Not logged in, run modu login");
         return;
     }
 
-    let client = reqwest::blocking::Client::new();
+    let mut config_file_contents = String::new();
+    config_file.unwrap().read_to_string(&mut config_file_contents).unwrap();
+
+    if config_file_contents.len() == 0 {
+        println!("Not logged in, run modu login");
+        return;
+    }
+
+    let toml = toml::from_str::<toml::Value>(&config_file_contents).unwrap();
+    let toml = toml.as_table().unwrap();
+
+    token = toml.get("token").unwrap().as_str().unwrap().to_string();
+    backend_url = toml.get("backend").unwrap().as_str().unwrap().to_string();
+
+    print!("Confirm you are publishing to {} (y/N) ", backend_url);
+    std::io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    std::io::stdin().read_line(&mut input).unwrap();
+
+    if input.trim() != "y" {
+        println!("Aborted");
+        return;
+    }
 
     let mut readme = String::new();
 
@@ -155,9 +167,10 @@ pub fn publish() {
         "readme": readme
     });
 
-    let res = client.post("https://modu-packages.vercel.app/api/v1/packages")
+    let client = reqwest::blocking::Client::new();
+    let res = client.post(format!("{}/api/v1/packages", backend_url))
         .header("Authorization", token)
-        .json(&body)
+        .json(&body)    
         .send().unwrap();
 
     if res.status().as_u16() != 200 {
