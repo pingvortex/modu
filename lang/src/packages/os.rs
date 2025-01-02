@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 use std::process::Command;
 use crate::ast::AST;
+use crate::eval::eval;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
-fn clean_command(cmd: &str) -> String {
+fn clean_command(cmd: String) -> String {
 	let clean = cmd.trim()
 		.trim_matches('"')
 		.trim_matches('\'')
@@ -14,14 +15,17 @@ fn clean_command(cmd: &str) -> String {
 	return clean;
 }
 
-pub fn exec(args: Vec<AST>, _context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn exec(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
 	if args.len() != 1 {
 		return Err("os.exec requires exactly one argument".to_string());
 	}
 
-	let command = match &args[0] {
-		AST::String(value) => value,
-		_ => return Err("os.exec argument must be a string".to_string()),
+	let command = match eval(args[0].clone(), context) {
+		Ok(AST::String(value)) => value,
+
+		Ok(_) => return Err("os.exec argument must be a string".to_string()),
+
+		Err(e) => return Err(e),
 	};
 
 	let cleaned = clean_command(command);

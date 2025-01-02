@@ -1,0 +1,19 @@
+import "os" as os;
+
+if os.name == "linux" {
+    print("i use arch btw");
+}
+
+if os.name == "macos" {
+    print("me like expensive apple");
+}
+
+if os.name == "windows" {
+    print("'normal person' os");
+}
+
+if os.name == "unknown" {
+    print("*explodes*");
+}
+
+print("My name is ", os.exec("whoami"), " and I use ", os.name);

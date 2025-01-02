@@ -1,0 +1,9 @@
+import "os" as os;
+
+fn get(url) {
+    let cmd = "curl -s " + url;
+    os.exec(cmd);
+}
+
+let res = get("https://modu.cyteon.hackclub.app/");
+print(res);
