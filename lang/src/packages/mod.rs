@@ -84,8 +84,9 @@ mod tests {
 		let os = get_package("os").unwrap();
 		match os {
 			AST::Object { properties, line: _ } => {
-				assert_eq!(properties.len(), 1);
+				assert_eq!(properties.len(), 2);
 				assert_eq!(properties.contains_key("exec"), true);
+				assert_eq!(properties.contains_key("name"), true);
 			}
 			_ => panic!("Expected AST::Object")
 		}
