@@ -4,6 +4,8 @@ use std::{collections::HashMap, path::PathBuf};
 use crate::utils;
 use crate::packages::get_package;
 
+static DISABLED_ON_SERVER: [&str; 2] = ["file", "os"];
+
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     match expr {
         AST::Call { name, args, line: _ } => {
@@ -154,8 +156,8 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 let args = std::env::args().collect::<Vec<String>>();
 
                 if args.len() > 1 && args[1] == "server" {
-                    if &file == "file" {
-                        return Err("Cannot import file package in server mode".to_string());
+                    if DISABLED_ON_SERVER.contains(&file.as_str()) {
+                        return Err(format!("{} is disabled on the server", file));
                     }
                 }
 

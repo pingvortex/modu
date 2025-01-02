@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::process::Command;
 use crate::ast::AST;
+
+#[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
 fn clean_command(cmd: &str) -> String {
