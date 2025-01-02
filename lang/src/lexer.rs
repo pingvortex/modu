@@ -94,6 +94,18 @@ pub enum Token {
     #[token("!=")]
     IsUnequal,
 
+    #[token("<")]
+    LessThan,
+
+    #[token(">")]
+    GreaterThan,
+
+    #[token("<=")]
+    LessThanOrEqual,
+
+    #[token(">=")]
+    GreaterThanOrEqual,
+
     #[token("*")]
     Star,
 }

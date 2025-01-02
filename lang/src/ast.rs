@@ -74,6 +74,30 @@ pub enum AST {
         line: usize,
     },
 
+    LessThan {
+        left: Box<AST>,
+        right: Box<AST>,
+        line: usize,
+    },
+
+    GreaterThan {
+        left: Box<AST>,
+        right: Box<AST>,
+        line: usize,
+    },
+
+    LessThanOrEqual {
+        left: Box<AST>,
+        right: Box<AST>,
+        line: usize,
+    },
+
+    GreaterThanOrEqual {
+        left: Box<AST>,
+        right: Box<AST>,
+        line: usize,
+    },
+
     IsUnequal {
         left: Box<AST>,
         right: Box<AST>,

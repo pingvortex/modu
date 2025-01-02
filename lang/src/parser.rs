@@ -951,26 +951,78 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     });
                 }
 
-                Ok(Token::IsEqual) => {
+                Ok(Token::IsEqual) | Ok(Token::IsUnequal) | Ok(Token::LessThan) | Ok(Token::GreaterThan) | Ok(Token::LessThanOrEqual) | Ok(Token::GreaterThanOrEqual) => {
                     let value = temp_ast.pop().unwrap_or(AST::Null);
 
                     match value {
                         AST::Null => {
-                            return Err(("Expected an value before '=='".to_string(), current_line));
+                            return Err(("Expected an value before comparison".to_string(), current_line));
                         }
 
                         _ => {
                             match temp_ast.pop().unwrap_or(AST::Null) {
                                 AST::Null => {
-                                    return Err(("Expected an value before '=='".to_string(), current_line));
+                                    return Err(("Expected an value before comparison".to_string(), current_line));
                                 }
 
                                 AST::IfStatement { mut condition, body, line } => {
-                                    condition = Box::new(AST::IsEqual {
-                                        left: Box::new(value),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    });
+                                    condition = match token {
+                                        Ok(Token::IsEqual) => {
+                                            Box::new(AST::IsEqual {
+                                                left: Box::new(value),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            })
+                                        }
+
+                                        Ok(Token::IsUnequal) => {
+                                            Box::new(AST::IsUnequal {
+                                                left: Box::new(value),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            })
+                                        }
+
+                                        Ok(Token::LessThan) => {
+                                            Box::new(AST::LessThan { 
+                                                left: Box::new(value),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            })
+                                        }
+
+                                        Ok(Token::GreaterThan) => {
+                                            Box::new(AST::GreaterThan { 
+                                                left: Box::new(value),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            })
+                                        }
+
+                                        Ok(Token::LessThanOrEqual) => {
+                                            Box::new(AST::LessThanOrEqual { 
+                                                left: Box::new(value),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            })
+                                        }
+
+                                        Ok(Token::GreaterThanOrEqual) => {
+                                            Box::new(AST::GreaterThanOrEqual { 
+                                                left: Box::new(value),
+                                                right: Box::new(AST::Null),
+                                                line,
+                                            })
+                                        }
+
+                                        Ok(_) => {
+                                            return Err(("Expected a comparison operator".to_string(), current_line));
+                                        }
+
+                                        Err(_) => {
+                                            return Err(("Expected a comparison operator".to_string(), current_line));
+                                        }
+                                    };
 
                                     temp_ast.push(AST::IfStatement {
                                         condition,
@@ -979,44 +1031,8 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                _ => {
-                                    return Err(("Expected an if statement before '=='".to_string(), current_line));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Ok(Token::IsUnequal) => {
-                    let value = temp_ast.pop().unwrap_or(AST::Null);
-
-                    match value {
-                        AST::Null => {
-                            return Err(("Expected an value before '!='".to_string(), current_line));
-                        }
-
-                        _ => {
-                            match temp_ast.pop().unwrap_or(AST::Null) {
-                                AST::Null => {
-                                    return Err(("Expected an value before '!='".to_string(), current_line));
-                                }
-
-                                AST::IfStatement { mut condition, body, line } => {
-                                    condition = Box::new(AST::IsUnequal {
-                                        left: Box::new(value),
-                                        right: Box::new(AST::Null),
-                                        line,
-                                    });
-
-                                    temp_ast.push(AST::IfStatement {
-                                        condition,
-                                        body,
-                                        line,
-                                    });
-                                }
-
-                                _ => {
-                                    return Err(("Expected an if statement before '!='".to_string(), current_line));
+                                v => {
+                                    return Err(("Expected an if statement before comparison".to_string(), current_line));
                                 }
                             }
                         }
@@ -1395,45 +1411,71 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::IfStatement { condition, body, line } => {
-                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
-                                if let AST::Null = **right {
-                                    temp_ast.push(AST::IfStatement {
-                                        condition: Box::new(AST::IsEqual {
-                                            left: left.clone(),
-                                            right: Box::new(AST::Identifer(lexer.slice().to_string())),
-                                            line: *line,
-                                        }),
-                                        body,
-                                        line: *line,
-                                    });
-                                } else {
-                                    return Err(("Expected a value before '=='".to_string(), current_line));
-                                }
-                            } else {
-                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
-                                    if let AST::Null = **right {
-                                        temp_ast.push(AST::IfStatement {
-                                            condition: Box::new(AST::IsUnequal {
-                                                left: left.clone(),
-                                                right: Box::new(AST::Identifer(lexer.slice().to_string())),
-                                                line: *line,
-                                            }),
-                                            body,
-                                            line: *line,
-                                        });
-                                    } else {
-                                        return Err(("Expected a value before '!='".to_string(), current_line));
-                                    }
-                                } else {
-                                    temp_ast.push(AST::IfStatement {
-                                        condition,
-                                        body,
+                        AST::IfStatement { mut condition, body, line } => {
+                            let mut push_identifier = false;
+
+                            match *condition {
+                                AST::IsEqual { left, right, line } => {
+                                    condition = Box::new(AST::IsEqual {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
                                         line,
                                     });
-        
-                                    temp_ast.push(AST::Identifer(lexer.slice().to_string()));
                                 }
+
+                                AST::IsUnequal { left, right, line } => {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThan { left, right, line } => {
+                                    condition = Box::new(AST::LessThan {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThan { left, right, line } => {
+                                    condition = Box::new(AST::GreaterThan {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThanOrEqual { left, right, line } => {
+                                    condition = Box::new(AST::LessThanOrEqual {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThanOrEqual { left, right, line } => {
+                                    condition = Box::new(AST::GreaterThanOrEqual {
+                                        left,
+                                        right: Box::new(AST::Identifer(lexer.slice().to_string())),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    push_identifier = true;
+                                }
+                            }
+
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
+
+                            if push_identifier {
+                                temp_ast.push(AST::Identifer(lexer.slice().to_string()));
                             }
                         }
 
@@ -1905,20 +1947,56 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::IfStatement { mut condition, body, line } => {
-                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
-                                condition = Box::new(AST::IsEqual {
-                                    left: left.clone(),
-                                    right: Box::new(AST::Addition { left: right.clone(), right: Box::new(AST::Null), line: *line }),
-                                    line: *line,
-                                });
-                            } else {
-                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
-                                    condition = Box::new(AST::IsUnequal {
-                                        left: left.clone(),
-                                        right: Box::new(AST::Addition { left: right.clone(), right: Box::new(AST::Null), line: *line }),
-                                        line: *line,
+                            match *condition {
+                                AST::IsEqual { left, right, line } => {
+                                    condition = Box::new(AST::IsEqual {
+                                        left,
+                                        right: Box::new(AST::Addition { left: right, right: Box::new(AST::Null), line }),
+                                        line,
                                     });
-                                } else {
+                                }
+
+                                AST::IsUnequal { left, right, line } => {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left,
+                                        right: Box::new(AST::Addition { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThan { left, right, line } => {
+                                    condition = Box::new(AST::LessThan {
+                                        left,
+                                        right: Box::new(AST::Addition { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThan { left, right, line } => {
+                                    condition = Box::new(AST::GreaterThan {
+                                        left,
+                                        right: Box::new(AST::Addition { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThanOrEqual { left, right, line } => {
+                                    condition = Box::new(AST::LessThanOrEqual {
+                                        left,
+                                        right: Box::new(AST::Addition { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThanOrEqual { left, right, line } => {
+                                    condition = Box::new(AST::GreaterThanOrEqual {
+                                        left,
+                                        right: Box::new(AST::Addition { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
                                     return Err(("Expected a value before '+'".to_string(), current_line));
                                 }
                             }
@@ -2054,21 +2132,59 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                         }
 
                         AST::IfStatement { mut condition, body, line } => {
-                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
-                                condition = Box::new(AST::IsEqual {
-                                    left: left.clone(),
-                                    right: Box::new(AST::Subtraction { left: right.clone(), right: Box::new(AST::Null), line: *line }),
-                                    line: *line,
-                                });
-                            } else {
-                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
-                                    condition = Box::new(AST::IsUnequal {
-                                        left: left.clone(),
-                                        right: Box::new(AST::Subtraction { left: right.clone(), right: Box::new(AST::Null), line: *line }),
-                                        line: *line,
+                            let mut push_sub = false;
+
+                            match *condition {
+                                AST::IsEqual { left, right, line } => {
+                                    condition = Box::new(AST::IsEqual {
+                                        left,
+                                        right: Box::new(AST::Subtraction { left: right, right: Box::new(AST::Null), line }),
+                                        line,
                                     });
-                                } else {
-                                    return Err(("Expected a value before '-'".to_string(), current_line));
+                                }
+
+                                AST::IsUnequal { left, right, line } => {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left,
+                                        right: Box::new(AST::Subtraction { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThan { left, right, line } => {
+                                    condition = Box::new(AST::LessThan {
+                                        left,
+                                        right: Box::new(AST::Subtraction { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThan { left, right, line } => {
+                                    condition = Box::new(AST::GreaterThan {
+                                        left,
+                                        right: Box::new(AST::Subtraction { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThanOrEqual { left, right, line } => {
+                                    condition = Box::new(AST::LessThanOrEqual {
+                                        left,
+                                        right: Box::new(AST::Subtraction { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThanOrEqual { left, right, line } => {
+                                    condition = Box::new(AST::GreaterThanOrEqual {
+                                        left,
+                                        right: Box::new(AST::Subtraction { left: right, right: Box::new(AST::Null), line }),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    push_sub = true;
                                 }
                             }
 
@@ -2077,6 +2193,14 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 body,
                                 line,
                             });
+
+                            if push_sub {
+                                temp_ast.push(AST::Subtraction {
+                                    left: Box::new(AST::Null),
+                                    right: Box::new(AST::Null),
+                                    line,
+                                });
+                            }
                         }
 
                         AST::Identifer(name) => {
@@ -2222,106 +2346,139 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             });
                         }
 
-                        AST::IfStatement { condition, body, line } => {
-                            if let AST::IsEqual { left, right, line } = condition.as_ref() {
-                                if let AST::Null = **right {
-                                    temp_ast.push(AST::IfStatement {
-                                        condition: Box::new(AST::IsEqual {
-                                            left: left.clone(),
-                                            right: Box::new(AST::Number(n)),
-                                            line: *line,
-                                        }),
-                                        body,
-                                        line: *line,
-                                    });
-                                } else {
-                                    if let AST::Addition { left: addition_left, right: _, line } = right.as_ref() {
-                                        temp_ast.push(AST::IfStatement {
-                                            condition: Box::new(AST::IsEqual {
-                                                left: left.clone(),
-                                                right: Box::new(AST::Addition {
-                                                    left: addition_left.clone(),
-                                                    right: Box::new(AST::Number(n)),
-                                                    line: *line,
-                                                }),
-                                                line: *line,
-                                            }),
-                                            body,
-                                            line: *line,
-                                        });
-                                    } else if let AST::Subtraction { left: subtraction_left, right: _, line } = right.as_ref() {
-                                        temp_ast.push(AST::IfStatement {
-                                            condition: Box::new(AST::IsEqual {
-                                                left: left.clone(),
-                                                right: Box::new(AST::Subtraction {
-                                                    left: subtraction_left.clone(),
-                                                    right: Box::new(AST::Number(n)),
-                                                    line: *line,
-                                                }),
-                                                line: *line,
-                                            }),
-                                            body,
-                                            line: *line,
-                                        });
-                                    } else {
-                                        return Err(("Expected a value before '=='".to_string(), current_line));
-                                    }
+                        AST::IfStatement { mut condition, body, line } => { 
+                            let mut right;
+                            let mut left;
+
+                            match *condition.clone() {
+                                AST::IsEqual { left: c_l, right: c_r, line } => {
+                                    left = c_l;
+                                    right = c_r;
                                 }
-                            } else {
-                                if let AST::IsUnequal { left, right, line } = condition.as_ref() {
-                                    if let AST::Null = **right {
-                                        temp_ast.push(AST::IfStatement {
-                                            condition: Box::new(AST::IsUnequal {
-                                                left: left.clone(),
-                                                right: Box::new(AST::Number(n)),
-                                                line: *line,
-                                            }),
-                                            body,
-                                            line: *line,
-                                        });
-                                    } else {
-                                        if let AST::Addition { left: addition_left, right: _, line } = right.as_ref() {
-                                            temp_ast.push(AST::IfStatement {
-                                                condition: Box::new(AST::IsUnequal {
-                                                    left: left.clone(),
-                                                    right: Box::new(AST::Addition {
-                                                        left: addition_left.clone(),
-                                                        right: Box::new(AST::Number(n)),
-                                                        line: *line,
-                                                    }),
-                                                    line: *line,
-                                                }),
-                                                body,
-                                                line: *line,
-                                            });
-                                        } else if let AST::Subtraction { left: subtraction_left, right: _, line } = right.as_ref() {
-                                            temp_ast.push(AST::IfStatement {
-                                                condition: Box::new(AST::IsUnequal  {
-                                                    left: left.clone(),
-                                                    right: Box::new(AST::Subtraction {
-                                                        left: subtraction_left.clone(),
-                                                        right: Box::new(AST::Number(n)),
-                                                        line: *line,
-                                                    }),
-                                                    line: *line,
-                                                }),
-                                                body,
-                                                line: *line,
-                                            });
-                                        } else {
-                                            return Err(("Expected a value before '!='".to_string(), current_line));
-                                        }
-                                    }
-                                } else {
+
+                                AST::IsUnequal { left: c_l, right: c_r, line } => {
+                                    left = c_l;
+                                    right = c_r;
+                                }
+
+                                AST::LessThan { left: c_l, right: c_r, line } => {
+                                    left = c_l;
+                                    right = c_r;
+                                }
+
+                                AST::GreaterThan { left: c_l, right: c_r, line } => {
+                                    left = c_l;
+                                    right = c_r;
+                                }
+
+                                AST::LessThanOrEqual { left: c_l, right: c_r, line } => {
+                                    left = c_l;
+                                    right = c_r;
+                                }
+
+                                AST::GreaterThanOrEqual { left: c_l, right: c_r, line } => {
+                                    left = c_l;
+                                    right = c_r;
+                                }
+
+                                _ => {
                                     temp_ast.push(AST::IfStatement {
                                         condition,
                                         body,
                                         line,
                                     });
-        
+                
                                     temp_ast.push(AST::Number(n));
+
+                                    continue;
                                 }
                             }
+
+                            match *right.clone() {
+                                AST::Null => {
+                                    right = Box::new(AST::Number(n));
+                                }
+
+                                AST::Addition { left: r_left, right: _, line } => {
+                                    right = Box::new(AST::Addition {
+                                        left: r_left,
+                                        right: Box::new(AST::Number(n)),
+                                        line,
+                                    });
+                                }
+
+                                AST::Subtraction { left: r_left, right: _, line } => {
+                                    right = Box::new(AST::Subtraction {
+                                        left: r_left,
+                                        right: Box::new(AST::Number(n)),
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    return Err(("Expected a value before comparison operator".to_string(), current_line));
+                                }
+                            }
+
+                            match *condition {
+                                AST::IsEqual { left: _, right: _, line }  => {
+                                    condition = Box::new(AST::IsEqual {
+                                        left,
+                                        right,
+                                        line,
+                                    });
+                                }
+
+                                AST::IsUnequal { left: _, right: _, line }  => {
+                                    condition = Box::new(AST::IsUnequal {
+                                        left,
+                                        right,
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThan { left: _, right: _, line }  => {
+                                    condition = Box::new(AST::LessThan {
+                                        left,
+                                        right,
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThan { left: _, right: _, line }  => {
+                                    condition = Box::new(AST::GreaterThan {
+                                        left,
+                                        right,
+                                        line,
+                                    });
+                                }
+
+                                AST::LessThanOrEqual { left: _, right: _, line }  => {
+                                    condition = Box::new(AST::LessThanOrEqual {
+                                        left,
+                                        right,
+                                        line,
+                                    });
+                                }
+
+                                AST::GreaterThanOrEqual { left: _, right: _, line }  => {
+                                    condition = Box::new(AST::GreaterThanOrEqual {
+                                        left,
+                                        right,
+                                        line,
+                                    });
+                                }
+
+                                _ => {
+                                    continue;
+                                }
+                            }
+
+                            temp_ast.push(AST::IfStatement {
+                                condition,
+                                body,
+                                line,
+                            });
                         }
 
                         AST::Return { value, line } => {
@@ -2805,7 +2962,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        _ => {
+                        v => {
                             return Err(("Expected a function or if statement before '{'".to_string(), current_line));
                         }
                     }

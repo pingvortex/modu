@@ -327,9 +327,77 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
+        AST::LessThan { left, right, line } => {
+            match (eval(*left, context)?, eval(*right, context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Boolean(l < r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Boolean(l < r));
+                }
+
+                (val, val2) => {
+                    return Err(format!("Cannot compare {:?} and {:?}", val, val2));
+                }
+            }
+        }
+
+        AST::GreaterThan { left, right, line } => {
+            match (eval(*left, context)?, eval(*right, context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Boolean(l > r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Boolean(l > r));
+                }
+
+                (val, val2) => {
+                    return Err(format!("Cannot compare {:?} and {:?}", val, val2));
+                }
+            }
+        }
+
+        AST::LessThanOrEqual { left, right, line } => {
+            match (eval(*left, context)?, eval(*right, context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Boolean(l <= r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Boolean(l <= r));
+                }
+
+                (val, val2) => {
+                    return Err(format!("Cannot compare {:?} and {:?}", val, val2));
+                }
+            }
+        }
+
+        AST::GreaterThanOrEqual { left, right, line } => {
+            match (eval(*left, context)?, eval(*right, context)?) {
+                (AST::Number(l), AST::Number(r)) => {
+                    return Ok(AST::Boolean(l >= r));
+                }
+
+                (AST::Float(l), AST::Float(r)) => {
+                    return Ok(AST::Boolean(l >= r));
+                }
+
+                (val, val2) => {
+                    return Err(format!("Cannot compare {:?} and {:?}", val, val2));
+                }
+            }
+        }
+
         AST::Exists { value, line: _ } => {
             match eval(*value, context)? {
                 AST::Null => {
+                    return Ok(AST::Boolean(false));
+                }
+
+                AST::Boolean(false) => {
                     return Ok(AST::Boolean(false));
                 }
 
