@@ -1,10 +1,10 @@
 [package]
-name = "modu"
+name = "modu-no-nightly"
 version = "0.5.0"
 edition = "2021"
 repository = "https://github.com/cyteon/modu"
 homepage = "https://cyteon.tech/modu"
-description = "A fast and simple interpreted language"
+description = "A fast and simple interpreted language (dosent have `modu server` but dosent need nightly)"
 documentation = "https://www.cyteon.tech/modu/docs/quickstart"
 license = "MIT"
 authors = ["Cyteon"]
