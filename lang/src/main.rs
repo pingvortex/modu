@@ -1,5 +1,3 @@
-#![feature(internal_output_capture)]
-
 mod lexer;
 mod ast;
 mod parser;
@@ -17,7 +15,6 @@ fn main() {
         println!("Commands:
     run     <file> - Run a Modu file
     repl           - Start the Modu REPL
-    server  [port] - Start the Modu server, default port is 2424
     init           - Initialize a new Modu package
     login          - Login with Modu Packages
     publish        - Publish a Modu package
@@ -31,7 +28,6 @@ fn main() {
     match action.as_str() {
         "run" => cli::run::run(),
         "repl" => cli::repl::repl(),
-        "server" => cli::server::server(),
         "login" => cli::login::login(),
         "init" => cli::init::init(),
         "publish" => cli::publish::publish(),
