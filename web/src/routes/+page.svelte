@@ -35,24 +35,24 @@
         
         <div class="flex space-x-2 justify-center">
             <a 
-            class="flex w-fit bg-white p-2 rounded-md text-ctp-mantle font-mono transition-all duration-300" 
+            class="flex w-fit bg-white p-2 rounded-md text-ctp-mantle transition-all duration-300" 
             href="https://github.com/cyteon/modu" target="_blank" 
             on:mouseenter={() => githubHovered = true} 
             on:mouseleave={() => githubHovered = false}
         >
             <Github size={24} class="my-auto" />
-            <span class="ml-1 text-xl mt-0.5">GitHub</span>
+            <span class="ml-1 text-xl">GitHub</span>
             <ExternalLink size={20} class={`my-auto  ${githubHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
         </a>
 
         <a 
-            class="flex w-fit bg-ctp-peach p-2 rounded-md text-ctp-mantle font-mono transition-all duration-300" 
+            class="flex w-fit bg-ctp-peach p-2 rounded-md text-ctp-mantle transition-all duration-300" 
             href="https://crates.io/crates/modu" target="_blank" 
             on:mouseenter={() => cratesIoHovered = true} 
             on:mouseleave={() => cratesIoHovered = false}
         >
             <Box size={24} class="my-auto" />
-            <span class="ml-1 text-xl mt-0.5">Crates.io</span>
+            <span class="ml-1 text-xl">Crates.io</span>
             <ExternalLink size={20} class={`my-auto  ${cratesIoHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
         </a>
         </div>
@@ -62,18 +62,18 @@
         <div class="my-6 mx-auto space-y-2 flex-col flex md:flex-row md:space-x-4 md:space-y-0">
             <a 
                 href={base + "/examples"}
-                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center font-mono w-full flex md:w-fit"
+                class="bg-ctp-blue text-ctp-crust text-xl p-2 rounded-md text-center w-full flex md:w-fit"
                 on:mouseenter={() => moreExamplesHovered = true}
                 on:mouseleave={() => moreExamplesHovered = false}
             >
                 <CircleHelp size={20} class="my-auto" />
-                <span class="ml-1 mt-0.5">More Examples</span>
+                <span class="ml-1">More Examples</span>
                 <ExternalLink size={20} class={`my-auto ${moreExamplesHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
 
             <a 
                 href={base + "/docs/quickstart"}
-                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-full flex md:w-fit"
+                class="bg-ctp-pink text-ctp-crust text-xl p-2 rounded-md text-center w-full flex md:w-fit"
                 on:mouseenter={() => docsHovered = true}
                 on:mouseleave={() => docsHovered = false}
             >
@@ -84,22 +84,22 @@
 
             <a 
                 href={base + "/ide"}
-                class="bg-ctp-yellow text-ctp-crust text-xl p-2 rounded-md font-mono text-center w-full flex md:w-fit"
+                class="bg-ctp-yellow text-ctp-crust text-xl p-2 rounded-md text-center w-full flex md:w-fit"
                 on:mouseenter={() => ideHovered = true}
                 on:mouseleave={() => ideHovered = false}
             >
                 <Code size={20} class="my-auto" />
-                <span class="ml-2 mt-0.5">Web IDE</span>
+                <span class="ml-2">Web IDE</span>
                 <ExternalLink size={20} class={`my-auto ${ideHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
         </div>
 
-        <div class="text-center mx-auto bg-ctp-mantle p-4 rounded-md">
-            <pre class="text-lg whitespace-pre-wrap">
+        <div class="text- mx-auto bg-ctp-mantle p-4 rounded-md">
+            <p class="text-xl whitespace-pre-wrap">
 Modu is a simple and fast interpreted programming language. 
-It is designed to be easy to learn and use like python,
-but fast and efficient like Rust.
-With streamlined error messages for easy debugging</pre>
+It is designed to be easy to learn and use like python.
+But with the speed and efficiency of rust :D
+With streamlined error messages for easy debugging</p>
         </div>
 
         <div class="mx-auto bg-ctp-mantle py-3 w-full rounded-md mt-4 mb-4 max-w-screen">

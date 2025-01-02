@@ -42,7 +42,7 @@ print(abc);
 
 ## Internal packages
 
-Internal packages are imported without **.modu** like:
+Internal/Installed packages are imported without **.modu** like:
 ```rust
 import "math" as math;
 import "file" as file;

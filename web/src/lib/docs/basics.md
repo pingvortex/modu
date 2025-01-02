@@ -52,7 +52,7 @@ Functions defined in a file, can be also be accessed in other files when importe
 
 ## Conditions
 
-Modu currently only supports == and != operators. \
+Modu has the following operators: **==**, **!=**, **>**, **&lt;**, **>=** and **<=** \
 If the condition given returns true, the code inside of the brackets is ran.
 
 ```rust
@@ -70,9 +70,9 @@ if 1 != 2 {
 // duh
 ```
 
-You can also use conditions to a check if a value is not null in a simpler, more clean way:
+You can also use conditions to a check if a value is not null or false in a simpler, more clean way:
 ```rust
 if a {
-    print("a exists");
+    print("a exists and is not null");
 }
 ```
