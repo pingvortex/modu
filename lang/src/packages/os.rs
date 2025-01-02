@@ -34,6 +34,7 @@ pub fn exec(args: Vec<AST>, _context: &mut HashMap<String, AST>) -> Result<AST, 
 				.creation_flags(0x08000000)
 				.output()
 		}
+
 		#[cfg(not(windows))] {
 			Command::new("sh")
 				.args(["-c", &cleaned])
@@ -65,6 +66,18 @@ pub fn get_object() -> HashMap<String, AST> {
 			args: vec!["command".to_string()],
 			call_fn: exec,
 		}
+	);
+
+	let os_name = match std::env::consts::OS {
+		"linux" => "linux",
+		"macos" => "macos",
+		"windows" => "windows",
+		_ => "unknown"
+	};
+
+	object.insert(
+		"name".to_string(),
+		AST::String(os_name.to_string())
 	);
 
 	object
