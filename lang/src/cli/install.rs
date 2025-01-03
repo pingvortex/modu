@@ -3,7 +3,7 @@ use std::io::{Read, Write};
 use toml;
 
 fn install_package(backend: &str, name: &str, version: &str) -> Result<serde_json::Value, String> {
-    let mut client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::new();
 
     let response = client.get(&format!("{}/api/v1/packages/{}/{}?isDownload=true", backend, name, version)).send().unwrap();
 
@@ -101,8 +101,8 @@ pub fn install() {
 
     let mut backend_url = "https://modu-packages.vercel.app".to_string();
 
-    let mut config_file;
-    let mut path;
+    let config_file;
+    let path;
 
     if cfg!(windows) {
         let home = std::env::var("USERPROFILE").unwrap();
@@ -120,11 +120,11 @@ pub fn install() {
 
     if config_file.is_ok() {
         let mut config_file_content = String::new();
-        config_file.unwrap().read_to_string(&mut config_file_content);
+        config_file.unwrap().read_to_string(&mut config_file_content).unwrap();
         
         if config_file_content.len() > 0 {
             let config_toml = toml::from_str::<toml::Value>(&config_file_content).unwrap();
-            let mut table = config_toml.as_table().unwrap();
+            let table = config_toml.as_table().unwrap();
 
             backend_url = match table.get("backend") {
                 Some(backend) => backend.to_string().replace("\"", ""),
@@ -137,14 +137,12 @@ pub fn install() {
 
     if args.len() < 3 {
         for (name, version) in dependencies.iter() {
-            let package = match install_package(&backend_url, name, version.as_str().unwrap()) {
-                Ok(package) => {
+            match install_package(&backend_url, name, version.as_str().unwrap()) {
+                Ok(_) => {
                     println!("Package {} installed\n", name);
-                    package
                 },
                 Err(_) => {
                     println!("Failed to install package {}", name);
-                    return;
                 }
             };
         }

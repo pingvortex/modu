@@ -6,7 +6,7 @@ use logos::Logos;
 use std::collections::HashMap;
 use std::vec;
 
-pub fn insert_right_bracket(mut obj: AST) -> AST {
+pub fn insert_right_bracket(obj: AST) -> AST {
     match obj {
         AST::Function { name, args, mut body, line } => {
             match body.pop().unwrap_or(AST::Null) {
@@ -583,7 +583,7 @@ pub fn handle_nested_arguments(last: AST, arg: AST) -> Result<AST, (String, usiz
             }
         }
 
-        (AST::PropertyAccess { object, property, line }, AST::Identifer(name)) => {
+        (AST::PropertyAccess { object, property: _, line }, AST::Identifer(name)) => {
             args.push(AST::PropertyAccess {
                 object,
                 property: Some(name.clone()),
@@ -1031,7 +1031,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                v => {
+                                _ => {
                                     return Err(("Expected an if statement before comparison".to_string(), current_line));
                                 }
                             }
@@ -1415,7 +1415,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             let mut push_identifier = false;
 
                             match *condition {
-                                AST::IsEqual { left, right, line } => {
+                                AST::IsEqual { left, right: _, line } => {
                                     condition = Box::new(AST::IsEqual {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -1423,7 +1423,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::IsUnequal { left, right, line } => {
+                                AST::IsUnequal { left, right: _, line } => {
                                     condition = Box::new(AST::IsUnequal {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -1431,7 +1431,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::LessThan { left, right, line } => {
+                                AST::LessThan { left, right: _, line } => {
                                     condition = Box::new(AST::LessThan {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -1439,7 +1439,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::GreaterThan { left, right, line } => {
+                                AST::GreaterThan { left, right: _, line } => {
                                     condition = Box::new(AST::GreaterThan {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -1447,7 +1447,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::LessThanOrEqual { left, right, line } => {
+                                AST::LessThanOrEqual { left, right: _, line } => {
                                     condition = Box::new(AST::LessThanOrEqual {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -1455,7 +1455,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::GreaterThanOrEqual { left, right, line } => {
+                                AST::GreaterThanOrEqual { left, right: _, line } => {
                                     condition = Box::new(AST::GreaterThanOrEqual {
                                         left,
                                         right: Box::new(AST::Identifer(lexer.slice().to_string())),
@@ -2067,7 +2067,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                         AST::LetDeclaration { name, value, line } => {
                             match *value {
-                                AST::Call { name: call_name, mut args, line } => {
+                                AST::Call { name: call_name, args, line } => {
                                     let new_call = handle_nested_arguments(AST::Call {
                                         name: call_name,
                                         args,
@@ -2081,7 +2081,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                     });
                                 }
 
-                                AST::PropertyCall { object, property, mut args, line } => {
+                                AST::PropertyCall { object, property, args, line } => {
                                     let new_call = handle_nested_arguments(AST::PropertyCall {
                                         object,
                                         property,
@@ -2348,35 +2348,35 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
 
                         AST::IfStatement { mut condition, body, line } => { 
                             let mut right;
-                            let mut left;
+                            let left;
 
                             match *condition.clone() {
-                                AST::IsEqual { left: c_l, right: c_r, line } => {
+                                AST::IsEqual { left: c_l, right: c_r, line: _ } => {
                                     left = c_l;
                                     right = c_r;
                                 }
 
-                                AST::IsUnequal { left: c_l, right: c_r, line } => {
+                                AST::IsUnequal { left: c_l, right: c_r, line: _ } => {
                                     left = c_l;
                                     right = c_r;
                                 }
 
-                                AST::LessThan { left: c_l, right: c_r, line } => {
+                                AST::LessThan { left: c_l, right: c_r, line: _ } => {
                                     left = c_l;
                                     right = c_r;
                                 }
 
-                                AST::GreaterThan { left: c_l, right: c_r, line } => {
+                                AST::GreaterThan { left: c_l, right: c_r, line: _ } => {
                                     left = c_l;
                                     right = c_r;
                                 }
 
-                                AST::LessThanOrEqual { left: c_l, right: c_r, line } => {
+                                AST::LessThanOrEqual { left: c_l, right: c_r, line: _ } => {
                                     left = c_l;
                                     right = c_r;
                                 }
 
-                                AST::GreaterThanOrEqual { left: c_l, right: c_r, line } => {
+                                AST::GreaterThanOrEqual { left: c_l, right: c_r, line: _ } => {
                                     left = c_l;
                                     right = c_r;
                                 }
@@ -2962,7 +2962,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             }
                         }
 
-                        v => {
+                        _ => {
                             return Err(("Expected a function or if statement before '{'".to_string(), current_line));
                         }
                     }
@@ -2972,7 +2972,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                     let value = ast.pop().unwrap_or(AST::Null);
 
                     match value {
-                        AST::Function { name, args, mut body, line } => {
+                        AST::Function { name, args, body, line } => {
                             let new_obj = insert_right_bracket(AST::Function {
                                 name,
                                 args,
@@ -2983,7 +2983,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                             ast.push(new_obj);
                         }
 
-                        AST::IfStatement { condition, mut body, line } => {
+                        AST::IfStatement { condition, body, line } => {
                             let new_obj = insert_right_bracket(AST::IfStatement {
                                 condition,
                                 body,

@@ -103,7 +103,7 @@ pub fn publish() {
 
     let token: String;
     let backend_url: String;
-    let mut path = String::new();
+    let path;
 
     if cfg!(windows) {
         let home = std::env::var("USERPROFILE").unwrap();

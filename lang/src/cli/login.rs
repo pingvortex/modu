@@ -3,7 +3,7 @@ use std::{env, io::Write, io::Read};
 
 
 pub fn login() {
-    let mut path = String::new();
+    let path;
 
     if cfg!(windows) {
         let home = env::var("USERPROFILE").unwrap();
@@ -63,7 +63,6 @@ pub fn login() {
     let mut backend_url = String::new();
 
     if use_diffrent_backend.trim() == "y" {
-        let mut backend = String::new();
         print!("Enter backend URL: ");
         std::io::stdout().flush().unwrap();
         std::io::stdin().read_line(&mut backend_url).unwrap();

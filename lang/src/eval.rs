@@ -329,7 +329,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::LessThan { left, right, line } => {
+        AST::LessThan { left, right, line: _ } => {
             match (eval(*left, context)?, eval(*right, context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Boolean(l < r));
@@ -345,7 +345,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::GreaterThan { left, right, line } => {
+        AST::GreaterThan { left, right, line: _ } => {
             match (eval(*left, context)?, eval(*right, context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Boolean(l > r));
@@ -361,7 +361,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::LessThanOrEqual { left, right, line } => {
+        AST::LessThanOrEqual { left, right, line: _ } => {
             match (eval(*left, context)?, eval(*right, context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Boolean(l <= r));
@@ -377,7 +377,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
             }
         }
 
-        AST::GreaterThanOrEqual { left, right, line } => {
+        AST::GreaterThanOrEqual { left, right, line: _ } => {
             match (eval(*left, context)?, eval(*right, context)?) {
                 (AST::Number(l), AST::Number(r)) => {
                     return Ok(AST::Boolean(l >= r));
