@@ -4,7 +4,7 @@
     import { basicSetup, EditorView } from "codemirror";
     import { EditorState, Compartment } from "@codemirror/state"
     import { rust } from "@codemirror/lang-rust";
-    import {tags} from "@lezer/highlight"
+    import { tags } from "@lezer/highlight"
     import { HighlightStyle, syntaxHighlighting } from "@codemirror/language"
     import { browser } from "$app/environment";
     import { onMount } from "svelte";
