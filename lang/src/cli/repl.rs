@@ -66,7 +66,7 @@ pub fn repl() {
                     .print()
                     .unwrap();
 
-                println!("Belive this is a bug? Report it: https://github.com/Cyteon/modu/issues/new");
+                println!("Believe this is a bug? Report it: https://github.com/Cyteon/modu/issues/new");
             });
         }
     }

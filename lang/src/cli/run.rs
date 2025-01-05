@@ -33,7 +33,7 @@ pub fn run() {
             .print()
             .unwrap();
 
-        println!("Belive this is a bug? Report it: https://github.com/Cyteon/modu/issues/new");
+        println!("Believe this is a bug? Report it: https://github.com/Cyteon/modu/issues/new");
             
         std::process::exit(1);
     });
