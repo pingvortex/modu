@@ -29,21 +29,13 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                                 return Err("Maximum recursion depth exceeded".to_string());
                                             }
 
+                                            if let AST::Return { value, line: _ } = expr {
+                                                return eval(*value.clone(), &mut new_context);
+                                            }
+
                                             depth += 1;
 
-                                            match eval(expr.clone(), &mut new_context) {
-                                                Ok(AST::Null) => {
-                                                    continue;
-                                                }
-
-                                                Ok(v) => {
-                                                    return Ok(v);
-                                                }
-
-                                                Err(e) => {
-                                                    return Err(e);
-                                                }
-                                            }
+                                            eval(expr.clone(), &mut new_context)?;
                                         }
                                     } else {                                        
                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
