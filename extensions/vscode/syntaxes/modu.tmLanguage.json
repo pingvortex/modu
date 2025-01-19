@@ -9,6 +9,7 @@
 		{ "include": "#operators" },
 		{ "include": "#semicolon" },
 		{ "include": "#comment" },
+		{ "include": "#multiline-comment" },
 		{ "include": "#null" },
 		{ "include": "#variable" },
 		{ "include": "#boolean" }
@@ -18,18 +19,24 @@
 			"patterns": [{
 				"name": "keyword.control.modu",
 				"match": "\\b(if|fn|let|import|as|return)\\b"
-
 			}]
 		},
 
 		"strings": {
-			"name": "string.quoted.double.modu",
-			"begin": "\"",
-			"end": "\"",
 			"patterns": [
 				{
 					"name": "constant.character.escape.modu",
 					"match": "\\\\."
+				},
+				{
+					"name": "string.quoted.double.modu",
+					"begin": "\"",
+					"end": "\""
+				},
+				{
+					"name": "string.quoted.single.modu",
+					"begin": "'",
+					"end": "'"
 				}
 			]
 		},
@@ -74,6 +81,12 @@
 		"comment": {
 			"name": "comment.line.modu",
 			"match": "//.*$"
+		},
+
+		"multiline-comment": {
+			"name": "comment.block.modu",
+			"begin": "/\\*",
+			"end": "\\*/"
 		},
 
 		"null": {
