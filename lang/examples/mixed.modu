@@ -21,7 +21,7 @@ if c == 3 {
 
 print('test');
 let d = 'potato' + " chips";
-print(d + '!');
+print(d + '!'); /* lol */
 
 // Output
 // 

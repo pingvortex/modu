@@ -35,3 +35,13 @@ LES GOOOO
 1
 
 ```
+
+## What wont work?
+**input()** will not work, as when running code its sent to the server, executed there, and sent back. And we have currently not added any way to make input() work, which would be extremely hard. \
+**exit()** has been disabled so people dont try to crash the server.
+
+
+
+The following (built-in) packages has been disabled on the server:
+- OS
+- File
