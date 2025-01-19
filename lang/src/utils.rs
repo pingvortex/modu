@@ -31,6 +31,15 @@ pub fn create_context() -> HashMap<String, AST> {
     );
 
     context.insert(
+        "int".to_string(),
+        AST::InternalFunction {
+            name: "int".to_string(),
+            args: vec!["__args__".to_string()], 
+            call_fn: crate::internal::int,
+        }
+    );
+
+    context.insert(
         "exit".to_string(), 
         AST::InternalFunction { 
             name: "exit".to_string(), 

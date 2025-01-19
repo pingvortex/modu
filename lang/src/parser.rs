@@ -1758,16 +1758,15 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                                 }
 
                                 AST::Call { name: call_name, args, line } => {
-                                    let mut new_args = args.clone();
-                                    new_args.push(AST::String(lexer.slice().to_string()));
+                                    let new_call = handle_nested_arguments(AST::Call {
+                                        name: call_name,
+                                        args,
+                                        line,
+                                    }, AST::String(lexer.slice().to_string()))?;
 
                                     temp_ast.push(AST::LetDeclaration {
                                         name,
-                                        value: Box::new(AST::Call {
-                                            name: call_name,
-                                            args: new_args,
-                                            line,
-                                        }),
+                                        value: Box::new(new_call),
                                         line,
                                     });
                                 }

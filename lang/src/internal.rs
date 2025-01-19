@@ -23,12 +23,23 @@ pub fn print(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, 
     Ok(AST::Null)
 }
 
-pub fn input(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn input(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     if args.len() > 0 {
         use std::io::Write;
-        print!("{}", args[0]);
-        std::io::stdout().flush().unwrap();
 
+        for arg in args {
+            match eval(arg, context) {
+                Ok(value) => {
+                    print!("{}", value);
+                }
+    
+                Err(e) => {
+                    return Err(e);
+                }
+            }
+        }
+
+        std::io::stdout().flush().unwrap();
     }
 
     let mut input = String::new();
@@ -36,6 +47,31 @@ pub fn input(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String
     std::io::stdin().read_line(&mut input).unwrap();
 
     Ok(AST::String(input.trim().to_string()))
+}
+
+pub fn int(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    if args.len() != 1 {
+        return Err("int() requires exactly one argument".to_string());
+    }
+
+    match eval(args[0].clone(), context) {
+        Ok(v) => {
+            match v {
+                AST::String(value) => {
+                    match value.parse::<i64>() {
+                        Ok(value) => Ok(AST::Number(value)),
+                        Err(_) => Err("Could not parse string to int".to_string())
+                    }
+                }
+        
+                AST::Number(value) => Ok(AST::Number(value)),
+        
+                _ => Err("int() requires a string or number".to_string())
+            }
+        }
+
+        Err(e) => Err(e)
+    }
 }
 
 pub fn exit(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {

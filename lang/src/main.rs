@@ -37,6 +37,9 @@ fn main() {
         "publish" => cli::publish::publish(),
         "install" => cli::install::install(),
         "uninstall" => cli::uninstall::uninstall(),
+        "--version" => {
+            println!("Modu v0.5.1");
+        }
 
         _ => {
             println!("Invalid action");
