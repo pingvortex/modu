@@ -863,6 +863,7 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     let mut line_map = HashMap::new();
     let mut current_line = 0;
     let mut bodies_deep = 0;
+    let mut inside_multiline_comment = false;
 
     for line in input.split("\n") {
         current_line += 1;
@@ -873,7 +874,19 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         let mut body_starts = false;
 
         while let Some(token) = lexer.next() {
+            if inside_multiline_comment {
+                if token == Ok(Token::MultiLineCommentEnd) {
+                    inside_multiline_comment = false;
+                } else {
+                    continue;
+                }
+            }
+
             match token {
+                Ok(Token::MultiLineCommentStart) => {
+                    inside_multiline_comment = true;
+                }
+
                 Ok(Token::Import) => {
                     temp_ast.push(AST::Import {
                         file: None,

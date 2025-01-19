@@ -25,6 +25,12 @@ pub enum Token {
     #[regex("//[^\n]*|/\\*([^*]|\\*[^/])*\\*/")]
     Comment,
 
+    #[token("/*")]
+    MultiLineCommentStart,
+
+    #[token("*/")]
+    MultiLineCommentEnd,
+
     #[token("let")]
     Let,
 

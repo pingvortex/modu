@@ -155,9 +155,9 @@ impl std::fmt::Display for AST {
                     .replace("\\n", "\n")
                     .replace("\\r", "\r")
                     .replace("\\\"", "\"")
-                    .replace("\\'", "'")
                     .replace("\\\\", "\\")
-                    .replace("\"", "");
+                    .replace("\"", "")
+                    .replace("'", "");
 
                 write!(f, "{}", s)
             },

@@ -19,6 +19,9 @@ if c == 3 {
   example();
 }
 
+print('test');
+let d = 'potato' + " chips";
+print(d + '!');
 
 // Output
 // 

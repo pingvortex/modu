@@ -69,7 +69,7 @@ mod tests {
     fn create_context_test() {
         let context = create_context();
 
-        assert_eq!(context.len(), 3);
+        assert_eq!(context.len(), 4);
         assert_eq!(context.contains_key("print"), true);
         assert_eq!(context.contains_key("exit"), true);
         assert_eq!(context.contains_key("input"), true);
