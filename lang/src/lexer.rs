@@ -70,7 +70,7 @@ pub enum Token {
     #[regex("[0-9]+\\.[0-9]+")]
     Float,
 
-    #[regex(r#""[^"]*""#)]
+    #[regex(r#""[^"]*"|'[^']*'"#)]
     String,
 
     #[regex("true|false")]
@@ -113,6 +113,24 @@ pub enum Token {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn string_1() {
+        let mut lexer = Token::lexer("\"Hello, world!\"");
+        assert_eq!(lexer.next(), Some(Ok(Token::String)));
+    }
+
+    #[test]
+    fn string_2() {
+        let mut lexer = Token::lexer("'Hello, world!'");
+        assert_eq!(lexer.next(), Some(Ok(Token::String)));
+    }
+
+    #[test]
+    fn string_error() {
+        let mut lexer = Token::lexer("\"Hello, world!'");
+        assert_eq!(lexer.next(), Some(Err(LexingError::UnexpectedToken)));
+    }
 
     #[test]
     fn asing_str() {
