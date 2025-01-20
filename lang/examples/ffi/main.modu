@@ -1,0 +1,8 @@
+import "ffi" as ffi;
+
+ffi.call("./libffi_test.so", "hello_world");
+
+print(ffi.call("./libffi_test.so", "a", 5));
+print(ffi.call("./libffi_test.so", "one"));
+print(ffi.call("./libffi_test.so", "add", 5, 10));
+print(ffi.call("./libffi_test.so", "string"));
