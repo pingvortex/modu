@@ -2,6 +2,7 @@ mod math;
 mod file;
 mod time;
 mod os;
+mod ffi;
 
 use crate::ast::AST;
 
@@ -36,6 +37,11 @@ pub fn get_package(name: &str) -> Option<AST> {
 
 		"os" => Some(AST::Object {
 			properties: os::get_object(),
+			line: 0
+		}),
+
+		"ffi" => Some(AST::Object {
+			properties: ffi::get_object(),
 			line: 0
 		}),
 
