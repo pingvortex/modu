@@ -61,7 +61,6 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
             return Ok(AST::Null);
         };
 
-        // like result_ptr as i64, but it can also be str
         if (result_ptr as i64) <= i32::MAX as i64 && (result_ptr as i64) >= i32::MIN as i64 {
             return Ok(AST::Number(result_ptr as i64));
         } else {
