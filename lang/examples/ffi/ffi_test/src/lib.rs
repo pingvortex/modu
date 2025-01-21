@@ -60,6 +60,32 @@ pub extern "C" fn print(
     println!("{}", str.to_str().unwrap());
 }
 
+#[unsafe(no_mangle)]
+pub extern "C" fn print2(
+    argc: std::ffi::c_int,
+    argv: *const *const std::ffi::c_char
+) {
+    if argc != 2 {
+        panic!("print requires 2 arguments");
+    }
+
+    let args = unsafe {
+        std::slice::from_raw_parts(argv, argc as usize)
+    };
+
+    let str = unsafe {
+        std::ffi::CStr::from_ptr(args[0])
+    };
+
+    let str2 = unsafe {
+        std::ffi::CStr::from_ptr(args[1])
+    };
+
+    print!("{}", str.to_str().unwrap());
+    print!("{}", str2.to_str().unwrap());
+    println!();
+}
+
 
 #[unsafe(no_mangle)]
 pub extern "C" fn hello_world() {

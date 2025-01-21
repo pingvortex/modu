@@ -4,9 +4,11 @@ ffi.call("./libffi_test.so", "hello_world");
 
 print(ffi.call("./libffi_test.so", "a", 5));
 print(ffi.call("./libffi_test.so", "one"));
-print(ffi.call("./libffi_test.so", "add", 5, 10));
+print(ffi.call("./libffi_test.so", "add", 5, 2)); // broken, prints 5
 print(ffi.call("./libffi_test.so", "string"));
 
 ffi.call("./libffi_test.so", "print", "test");
+ffi.call("./libffi_test.so", "print2", "test1", " test2");
+
 
 // ffi.call("./libffi_test.so", "add", 1, 2, 3); // panic test
