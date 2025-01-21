@@ -29,36 +29,40 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
 
         let func: libloading::Symbol<unsafe extern "C" fn(
             argc: std::ffi::c_int,
-            argv: *mut std::ffi::c_void
+            argv: *mut std::ffi::c_char
         ) -> *mut std::ffi::c_void> 
             = match lib.get(name.as_bytes()) {
                 Ok(func) => func,
                 Err(e) => return Err(format!("Failed to load function: {}", e)),
             };
 
-        let mut args_ptr: Vec<*mut std::ffi::c_void> = Vec::new();
+        let mut args_ptr: Vec<*mut std::ffi::c_char> = Vec::new();
 
         args.remove(0);
         args.remove(0);
 
         for arg in args {
-            match arg {
-                AST::Number(v) => {
-                    args_ptr.push(v as *mut std::ffi::c_void);
+            match eval(arg, context) {
+                Ok(AST::Number(_)) => {
+                    //args_ptr.push(v as *mut std::ffi::c_void);
+                    return Err("Cant use numbers in ffi, it was extremely broken, to be fixed\nSuggestion: turn int to str with str(int), then parse that to int in the lib".to_string());
                 }
 
-                AST::String(v) => {
+                Ok(AST::String(v)) => {
                     let c_str = std::ffi::CString::new(v.replace("\"", "")).unwrap();
-                    args_ptr.push(c_str.into_raw() as *mut std::ffi::c_void);
+                    
+                    args_ptr.push(c_str.into_raw() as *mut std::ffi::c_char);
                 }
 
-                _ => return Err("ffi.call arguments must be numbers or strings".to_string()),
+                Ok(_) => return Err("ffi.call arguments must be numbers or strings".to_string()),
+
+                Err(e) => return Err(e),
             };
         }
 
         let result_ptr = func(
             args_ptr.len() as std::ffi::c_int,
-            args_ptr.as_mut_ptr() as *mut std::ffi::c_void
+            args_ptr.as_mut_ptr() as *mut std::ffi::c_char
         );
 
         if result_ptr.is_null() {

@@ -50,23 +50,71 @@ pub fn input(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, 
 }
 
 pub fn int(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
-    if args.len() != 1 {
-        return Err("int() requires exactly one argument".to_string());
-    }
-
     match eval(args[0].clone(), context) {
         Ok(v) => {
             match v {
                 AST::String(value) => {
                     match value.parse::<i64>() {
-                        Ok(value) => Ok(AST::Number(value)),
-                        Err(_) => Err("Could not parse string to int".to_string())
+                        Ok(value) => {return Ok(AST::Number(value));},
+                        Err(_) => (),
                     }
+
+                    match value.parse::<f64>() {
+                        Ok(value) => {return Ok(AST::Number(value as i64));},
+                        Err(_) => (),
+                    }
+
+                    return Err("int() requires a string or boolean".to_string());
                 }
+
+                AST::Boolean(value) => Ok(AST::Number(if value {1} else {0})),
         
                 AST::Number(value) => Ok(AST::Number(value)),
         
-                _ => Err("int() requires a string or number".to_string())
+                _ => Err("int() requires a string or boolean".to_string())
+            }
+        }
+
+        Err(e) => Err(e)
+    }
+}
+
+pub fn float(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    match eval(args[0].clone(), context) {
+        Ok(v) => {
+            match v {
+                AST::String(value) => {
+                    match value.parse::<f64>() {
+                        Ok(value) => Ok(AST::Float(value)),
+                        Err(_) => Err("float() requires a string or boolean".to_string())
+                    }
+                }
+
+                AST::Boolean(value) => Ok(AST::Float(if value {1.0} else {0.0})),
+        
+                AST::Number(value) => Ok(AST::Float(value as f64)),
+                AST::Float(value) => Ok(AST::Float(value)),
+        
+                _ => Err("float() requires a string or boolean".to_string())
+            }
+        }
+
+        Err(e) => Err(e)
+    }
+}
+
+pub fn str(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+    match eval(args[0].clone(), context) {
+        Ok(v) => {
+            match v {
+                AST::String(value) => Ok(AST::String(value)),
+        
+                AST::Number(value) => Ok(AST::String(value.to_string())),
+                AST::Float(value) => Ok(AST::String(value.to_string())),
+                AST::Boolean(value) => Ok(AST::String(value.to_string())),
+                AST::Null => Ok(AST::String("null".to_string())),
+        
+                _ => Err("str() requires a string, number or boolean".to_string())
             }
         }
 
