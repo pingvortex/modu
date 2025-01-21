@@ -4,7 +4,7 @@ use std::{collections::HashMap, path::PathBuf};
 use crate::utils;
 use crate::packages::get_package;
 
-static DISABLED_ON_SERVER: [&str; 2] = ["file", "os"];
+static DISABLED_ON_SERVER: [&str; 3] = ["file", "os", "ffi"];
 
 pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     match expr {
