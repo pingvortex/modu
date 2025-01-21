@@ -11,6 +11,8 @@ pub extern "C" fn add(
         std::slice::from_raw_parts(argv, argc as usize)
     };
 
+    dbg!(&args);
+
     args[0] + args[1]
 }
 
