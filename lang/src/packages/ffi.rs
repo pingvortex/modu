@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::result;
 use crate::ast::AST;
 use crate::eval::eval;
 
@@ -30,14 +29,14 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
 
         let func: libloading::Symbol<unsafe extern "C" fn(
             argc: std::ffi::c_int,
-            argv: *const std::ffi::c_int
+            argv: *mut std::ffi::c_void
         ) -> *mut std::ffi::c_void> 
             = match lib.get(name.as_bytes()) {
                 Ok(func) => func,
                 Err(e) => return Err(format!("Failed to load function: {}", e)),
             };
 
-        let mut args_ptr: Vec<std::ffi::c_int> = Vec::new();
+        let mut args_ptr: Vec<*mut std::ffi::c_void> = Vec::new();
 
         args.remove(0);
         args.remove(0);
@@ -45,16 +44,21 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
         for arg in args {
             match arg {
                 AST::Number(v) => {
-                    args_ptr.push(v as std::ffi::c_int);
+                    args_ptr.push(v as *mut std::ffi::c_void);
                 }
 
-                _ => return Err("ffi.call arguments must be numbers for now".to_string()),
+                AST::String(v) => {
+                    let c_str = std::ffi::CString::new(v.replace("\"", "")).unwrap();
+                    args_ptr.push(c_str.into_raw() as *mut std::ffi::c_void);
+                }
+
+                _ => return Err("ffi.call arguments must be numbers or strings".to_string()),
             };
         }
 
         let result_ptr = func(
             args_ptr.len() as std::ffi::c_int,
-            args_ptr.as_ptr()
+            args_ptr.as_mut_ptr() as *mut std::ffi::c_void
         );
 
         if result_ptr.is_null() {
