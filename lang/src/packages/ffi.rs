@@ -65,6 +65,9 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
             args_ptr.as_mut_ptr() as *mut std::ffi::c_char
         );
 
+        // lib go bye (i think this prevents memory leaks or something)
+        lib.close().unwrap();
+
         if result_ptr.is_null() {
             return Ok(AST::Null);
         };
