@@ -1,8 +1,10 @@
 use std::collections::HashMap;
+use libffi::high::Arg;
+
 use crate::ast::AST;
 use crate::eval::eval;
 
-pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn call(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
     // (path_to_lib, function_name, arg1, arg2, ...)
 
     if args.len() < 2 {
@@ -27,50 +29,41 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
             Err(e) => return Err(format!("Failed to load library: {}", e)),
         };
 
-        let func: libloading::Symbol<unsafe extern "C" fn(
-            argc: std::ffi::c_int,
-            argv: *mut std::ffi::c_void
-        ) -> *mut std::ffi::c_void> 
-            = match lib.get(name.as_bytes()) {
-                Ok(func) => func,
-                Err(e) => return Err(format!("Failed to load function: {}", e)),
-            };
+        let func_ptr: libloading::Symbol<*mut std::ffi::c_void> = match lib.get(name.as_bytes()) {
+            Ok(func) => func,
+            Err(e) => return Err(format!("Failed to load function: {}", e)),
+        };
 
-        let mut args_ptr: Vec<*mut std::ffi::c_void> = Vec::new();
+        let mut ffi_args = Vec::new();
+        let mut cstrings = Vec::new();
 
-        args.remove(0);
-        args.remove(0);
-
-        for arg in args {
+        for arg in args.iter().skip(2) {
             match arg {
                 AST::Number(v) => {
-                    args_ptr.push(v as *mut std::ffi::c_void);
+                    // me when temp value freed error if i put this inside the push as a normal person would do
+                    let send_help = *v as std::ffi::c_int;
+
+                    ffi_args.push(Arg::new(&send_help));
                 }
 
                 AST::String(v) => {
                     let c_str = std::ffi::CString::new(v.replace("\"", "")).unwrap();
-                    args_ptr.push(c_str.into_raw() as *mut std::ffi::c_void);
+                    cstrings.push(c_str);
+                    ffi_args.push(Arg::new(&(cstrings.last().unwrap().as_ptr() as *const std::ffi::c_void)));
                 }
 
                 _ => return Err("ffi.call arguments must be numbers or strings".to_string()),
             };
         }
 
-        let result_ptr = func(
-            args_ptr.len() as std::ffi::c_int,
-            args_ptr.as_mut_ptr() as *mut std::ffi::c_void
+        let ret_type = libffi::middle::Type::pointer();
+
+        let result_ptr: i32 = libffi::high::call::call(
+            libffi::high::call::CodePtr::from_ptr(*func_ptr),
+            ffi_args.as_slice(),
         );
 
-        if result_ptr.is_null() {
-            return Ok(AST::Null);
-        };
-
-        if (result_ptr as i64) <= i32::MAX as i64 && (result_ptr as i64) >= i32::MIN as i64 {
-            return Ok(AST::Number(result_ptr as i64));
-        } else {
-            let str = std::ffi::CStr::from_ptr(result_ptr as *const _);
-            return Ok(AST::String(str.to_string_lossy().into_owned()))
-        }
+        Ok(AST::Null)
     }
 }
 
