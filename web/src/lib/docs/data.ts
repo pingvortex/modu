@@ -1,4 +1,4 @@
-import { Home, Baseline, File, FileBox, Equal, TriangleAlert, Server, Library, AppWindowIcon } from "lucide-svelte"
+import { Home, Baseline, File, FileBox, Equal, TriangleAlert, Server, Library, AppWindowIcon, Box } from "lucide-svelte"
 
 export default {
     pages: [
@@ -36,6 +36,11 @@ export default {
             "path": "os",
             "title": "OS Lib",
             "icon": AppWindowIcon,
+        },
+        {
+            "path": "ffi",
+            "title": "FFI",
+            "icon": Box,
         },
         /*{
             "path": "limitations",
