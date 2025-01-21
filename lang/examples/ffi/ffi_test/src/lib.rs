@@ -1,7 +1,7 @@
 #[unsafe(no_mangle)]
 pub extern "C" fn add(
     argc: std::ffi::c_int,
-    argv: *const std::ffi::c_int
+    argv: *const *const std::ffi::c_char
 ) -> i32 {
     if argc != 2 {
         panic!("add requires 2 arguments");
@@ -11,13 +11,24 @@ pub extern "C" fn add(
         std::slice::from_raw_parts(argv, argc as usize)
     };
 
-    args[0] + args[1]
+    // modu ffi cant have numbers as args cause shit broke
+    let num1 = unsafe {
+        std::ffi::CString::from_raw(args[0] as *mut std::ffi::c_char)
+    };
+    let num1 = num1.to_str().unwrap().parse::<i32>().unwrap();
+
+    let num2 = unsafe {
+        std::ffi::CString::from_raw(args[1] as *mut std::ffi::c_char)
+    };
+    let num2 = num2.to_str().unwrap().parse::<i32>().unwrap();
+
+    num1 + num2
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn a(
     argc: std::ffi::c_int,
-    argv: *mut std::ffi::c_int
+    argv: *const *const std::ffi::c_char
 ) -> i32 {
     if argc != 1 {
         panic!("a requires 1 argument");
@@ -27,7 +38,12 @@ pub extern "C" fn a(
         std::slice::from_raw_parts(argv, argc as usize)
     };
 
-    args[0]
+    let a = unsafe {
+        std::ffi::CString::from_raw(args[0] as *mut std::ffi::c_char)
+    };
+    let a = a.to_str().unwrap();
+
+    a.parse().unwrap()   
 }
 
 #[unsafe(no_mangle)]

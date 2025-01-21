@@ -2,9 +2,11 @@ import "ffi" as ffi;
 
 ffi.call("./libffi_test.so", "hello_world");
 
-print(ffi.call("./libffi_test.so", "a", 5));
+print(ffi.call("./libffi_test.so", "a", "5"));
 print(ffi.call("./libffi_test.so", "one"));
-print(ffi.call("./libffi_test.so", "add", 5, 2)); // broken, prints 5
+
+// due to some arg issues, ffi calls cant accept numbers
+print(ffi.call("./libffi_test.so", "add", str(5), str(2)));
 print(ffi.call("./libffi_test.so", "string"));
 
 ffi.call("./libffi_test.so", "print", "test");
