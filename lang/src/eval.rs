@@ -35,7 +35,11 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                                             depth += 1;
 
-                                            eval(expr.clone(), &mut new_context)?;
+                                            let ast: AST = eval(expr.clone(), &mut new_context)?;
+
+                                            if let AST::Return { value, line: _ } = ast {
+                                                return Ok(*value);
+                                            }
                                         }
                                     } else {                                        
                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
@@ -228,7 +232,11 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                                                                 return eval(*value.clone(), &mut new_context);
                                                             }
 
-                                                            eval(expr.clone(), &mut new_context)?;
+                                                            let ast = eval(expr.clone(), &mut new_context)?;
+
+                                                            if let AST::Return { value, line: _ } = ast {
+                                                                return Ok(*value);
+                                                            }
                                                         }
                                                     } else {
                                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
@@ -406,19 +414,11 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
                 AST::Boolean(b) => {
                     if b {
                         for expr in body {
-                            match eval(expr, context) {
-                                Ok(AST::Null) => {
-                                    continue;
-                                }
-
-                                Ok(v) => {
-                                    return Ok(v);
-                                },
-
-                                Err(e) => {
-                                    return Err(e);
-                                }
+                            if let AST::Return { value, line } = expr {
+                                return Ok(AST::Return { value, line });
                             }
+
+                            eval(expr, context)?;
                         }
                     }
                 }
