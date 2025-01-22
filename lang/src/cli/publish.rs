@@ -25,7 +25,6 @@ fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) 
         }
 
         let mut gitignore_content = String::new();
-
         let gitignore: Result<_, _> = std::fs::File::open(".gitignore");
 
         match gitignore {
@@ -33,6 +32,24 @@ fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) 
                 file.read_to_string(&mut gitignore_content).unwrap();
 
                 for line in gitignore_content.lines() {
+                    if path.to_str().unwrap().replace("\\", "/") == format!("./{}", line) {
+                        println!("Ignoring {}", path.to_str().unwrap());
+                        do_break = true;
+                    }
+                }
+            },
+
+            Err(_) => {}
+        }
+
+        let mut moduignore_content = String::new();
+        let moduignore: Result<_, _> = std::fs::File::open(".moduignore");
+
+        match moduignore {
+            Ok(mut file) => {
+                file.read_to_string(&mut moduignore_content).unwrap();
+
+                for line in moduignore_content.lines() {
                     if path.to_str().unwrap().replace("\\", "/") == format!("./{}", line) {
                         println!("Ignoring {}", path.to_str().unwrap());
                         do_break = true;
@@ -54,9 +71,9 @@ fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) 
 
             archive.start_file(name.to_str().unwrap(), zip::write::SimpleFileOptions::default()).unwrap();
             let mut file = std::fs::File::open(path).unwrap();
-            let mut contents = String::new();
+            let mut contents = Vec::new();
             
-            let r = file.read_to_string(&mut contents);
+            let r = file.read_to_end(&mut contents);
 
             match r {
                 Ok(_) => {},
@@ -65,7 +82,7 @@ fn read_dir(dir: &std::path::Path, archive: &mut zip::ZipWriter<std::fs::File>) 
                 }
             }
 
-            archive.write_all(contents.as_bytes()).unwrap();
+            archive.write_all(&contents).unwrap();
         }
     }
 }
@@ -95,6 +112,7 @@ pub fn publish() {
 
     std::fs::create_dir_all(".modu").unwrap();
 
+    println!("Compressing package");
     let mut archive = zip::ZipWriter::new(std::fs::File::create(".modu/package.zip").unwrap());
     read_dir(std::path::Path::new("."), &mut archive);
     archive.finish().unwrap();
