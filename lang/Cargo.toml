@@ -9,6 +9,7 @@ documentation = "https://www.cyteon.tech/modu/docs/quickstart"
 license = "MIT"
 authors = ["Cyteon"]
 keywords = ["programming-language", "cli", "interpreter", "language"]
+exclude = ["./examples"]
 
 [dependencies]
 bat = "0.24.0"
