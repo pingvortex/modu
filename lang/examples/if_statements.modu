@@ -30,6 +30,11 @@ if c == "potato" {
     print("c == 'potato'");
 }
 
+let h;
+if h {
+    print("oh nyo");
+}
+
 // Expected Output:
 //
 // a == 1

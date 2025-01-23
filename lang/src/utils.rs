@@ -34,8 +34,26 @@ pub fn create_context() -> HashMap<String, AST> {
         "int".to_string(),
         AST::InternalFunction {
             name: "int".to_string(),
-            args: vec!["__args__".to_string()], 
+            args: vec!["val".to_string()], 
             call_fn: crate::internal::int,
+        }
+    );
+
+    context.insert(
+        "float".to_string(),
+        AST::InternalFunction {
+            name: "float".to_string(),
+            args: vec!["val".to_string()], 
+            call_fn: crate::internal::float,
+        }
+    );
+
+    context.insert(
+        "str".to_string(),
+        AST::InternalFunction {
+            name: "str".to_string(),
+            args: vec!["val".to_string()], 
+            call_fn: crate::internal::str,
         }
     );
 
@@ -69,7 +87,7 @@ mod tests {
     fn create_context_test() {
         let context = create_context();
 
-        assert_eq!(context.len(), 4);
+        assert_eq!(context.len(), 6);
         assert_eq!(context.contains_key("print"), true);
         assert_eq!(context.contains_key("exit"), true);
         assert_eq!(context.contains_key("input"), true);
