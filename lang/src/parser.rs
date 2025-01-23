@@ -3041,10 +3041,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
         } else {
             ast.append(&mut temp_ast);
         }
-
-        if verbose {
-            //dbg!(&ast);
-        }
     }
 
     if verbose {
@@ -3079,6 +3075,8 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
                 }
+
+                print_res(result.unwrap());
             }
 
             AST::PropertyCall { object, property, args, line } => {
@@ -3089,6 +3087,8 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
                 }
+
+                print_res(result.unwrap());
             }
 
             AST::Function { name, args, body, line } => {
@@ -3114,6 +3114,16 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
             AST::Semicolon => {}
             AST::Null => {}
 
+            AST::Identifer(name) => {
+                let result = eval(AST::Identifer(name), context);
+                    
+                if result.is_err() {
+                    return Err((result.err().unwrap(), 1));
+                }
+
+                print_res(result.unwrap());
+            }
+
             _ => {
                 if verbose {
                     println!("I'm not sure what to do with a {:?}", item);
@@ -3123,6 +3133,32 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
     }
 
     Ok(())
+}
+
+fn print_res(res: AST) {
+    match res {
+        AST::String(v) => {
+            println!("{}", v);
+        }
+
+        AST::Number(v) => {
+            println!("{}", v);
+        }
+
+        AST::Float(v) => {
+            println!("{}", v);
+        }
+
+        AST::Boolean(v) => {
+            println!("{}", v);
+        }
+
+        AST::Null => {
+            println!("null");
+        },
+
+        _ => {}
+    }
 }
 
 #[cfg(test)]
