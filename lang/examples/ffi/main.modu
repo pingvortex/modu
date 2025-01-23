@@ -1,7 +1,7 @@
 import "ffi" as ffi;
 import "os" as os;
 
-let path = "libffi_test"
+let path = "./libffi_test"
 
 if os.name == "linux" {
     let path = path + ".so"

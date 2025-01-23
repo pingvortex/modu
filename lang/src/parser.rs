@@ -3153,10 +3153,6 @@ fn print_res(res: AST) {
             println!("{}", v);
         }
 
-        AST::Null => {
-            println!("null");
-        },
-
         _ => {}
     }
 }
