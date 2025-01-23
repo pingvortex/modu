@@ -1,16 +1,31 @@
 import "ffi" as ffi;
+import "os" as os;
 
-ffi.call("./libffi_test.so", "hello_world");
+let path = "libffi_test"
 
-print(ffi.call("./libffi_test.so", "a", "5"));
-print(ffi.call("./libffi_test.so", "one"));
+if os.name == "linux" {
+    let path = path + ".so"
+}
+
+if os.name == "macos" {
+    let path = path + ".dylib"
+}
+
+if os.name == "windows" {
+    let path = path + ".dll"
+}
+
+ffi.call(path, "hello_world");
+
+print(ffi.call(path, "a", "5"));
+print(ffi.call(path, "one"));
 
 // due to some arg issues, ffi calls cant accept numbers
-print(ffi.call("./libffi_test.so", "add", str(5), str(2)));
-print(ffi.call("./libffi_test.so", "string"));
+print(ffi.call(path, "add", str(5), str(2)));
+print(ffi.call(path, "string"));
 
-ffi.call("./libffi_test.so", "print", "test");
-ffi.call("./libffi_test.so", "print2", "test1", " test2");
+ffi.call(path, "print", "test");
+ffi.call(path, "print2", "test1", " test2");
 
 
-// ffi.call("./libffi_test.so", "add", 1, 2, 3); // panic test
+// ffi.call(path, "add", 1, 2, 3); // panic test
