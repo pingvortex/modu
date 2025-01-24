@@ -23,7 +23,7 @@ pub fn server() {
             (POST) (/eval) => {
                 println!("POST /eval | {} | {}", request.remote_addr(), request.header("User-Agent").unwrap_or("unknown"));
 
-                let text = rouille::input::plain_text_body(request).unwrap_or("".to_string());
+                let text = rouille::input::plain_text_body(request).unwrap();
 
                 if text.contains("exit") {
                     return rouille::Response {
