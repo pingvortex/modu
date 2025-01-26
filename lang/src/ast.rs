@@ -165,6 +165,42 @@ impl std::fmt::Display for AST {
             AST::Float(n) => write!(f, "{}", n),
             AST::Boolean(b) => write!(f, "{}", b),
             AST::Null => write!(f, "null"),
+
+            AST::Object { properties, line: _ } => {
+                write!(f, "{{ ")?;
+
+                let built_in_funcs = vec!["set"];
+
+                if properties.len() == 0 || properties.len() - built_in_funcs.len() <= 0 {
+                    write!(f, "}}")?;
+                } else {
+                    let mut str = String::new();
+
+                    for (key, value) in properties {
+                        if built_in_funcs.contains(&key.as_str()) {
+                            continue;
+                        }
+
+                        let fixed_for_str = match value {
+                            // cause strings in obj should have ""
+                            AST::String(s) => format!("\"{}\"", s),
+                            _ => format!("{}", value),
+                        };
+
+                        str.push_str(&format!("{}: {}, ", key, fixed_for_str));
+                    }
+
+                    if str.len() > 0 {
+                        write!(f, "{}", &str[..str.len() - 2])?;
+                    }
+
+
+                    write!(f, " }}")?;
+                }
+                
+                Ok(())
+            }
+
             _ => write!(f, "{:?}", self),
         }
     }
