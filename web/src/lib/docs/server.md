@@ -45,3 +45,4 @@ LES GOOOO
 The following (built-in) packages has been disabled on the server:
 - OS
 - File
+- FFI

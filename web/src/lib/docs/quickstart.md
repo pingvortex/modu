@@ -4,13 +4,15 @@ Can be used through [The Web IDE](../ide) btw
 
 ## Installation
 
-From [crates.io](https://crates.io/crates/modu)
+Starting from modu **0.5.3** we also put releases on [github releases](https://github.com/Cyteon/modu/releases)
+
+From [crates.io](https://crates.io/crates/modu):
 ```bash
 $ cargo +nightly install modu
 ```
 
 More methods coming soon \
-You can also download binaries from the latest [action runs](https://github.com/Cyteon/modu/actions/workflows/rust.yml)
+The 100% newest binaries can be downloaded from [action runs](https://github.com/Cyteon/modu/actions/workflows/rust.yml)
 
 ## Running
 

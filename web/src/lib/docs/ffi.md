@@ -1,7 +1,7 @@
 # Foreign Function Interface (FFI)
 > Disabled on the server due to security >:D
 
-⚠️ Can only take strings (or variables that are strings) as arguments
+⚠️ Can only take strings (or variables that are converted to strings) as arguments
 
 Using FFI is actually really simple, just import a **.dll/.so/.dylib** file and u can run its functions with ffi.call, here is an example:
 ```rust
