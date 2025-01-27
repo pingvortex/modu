@@ -3,7 +3,7 @@ mod file;
 mod time;
 mod os;
 mod ffi;
-mod json;
+pub mod json;
 
 use crate::ast::AST;
 

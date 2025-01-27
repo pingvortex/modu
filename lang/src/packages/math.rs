@@ -4,7 +4,7 @@ use rand;
 use crate::ast::AST;
 use crate::eval::eval;
 
-pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match (eval(args[0].clone(), context), eval(args[1].clone(), context)) {
         (Ok(AST::Number(a)), Ok(AST::Number(b))) => {
             if b == 0 {
@@ -14,10 +14,10 @@ pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, St
             let result = a as f64 / b as f64;
 
             if result.fract() == 0.0 {
-                return Ok(AST::Number(result as i64));
+                return Ok((AST::Number(result as i64), AST::Null));
             }
 
-            return Ok(AST::Float(result));
+            return Ok((AST::Float(result), AST::Null));
         }
 
         (Ok(AST::Float(a)), Ok(AST::Float(b))) => {
@@ -25,7 +25,7 @@ pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, St
                 return Err("cannot divide by zero".to_string());
             }
 
-            return Ok(AST::Float(a / b));
+            return Ok((AST::Float(a / b), AST::Null));
         }
 
         (Ok(AST::Float(a)), Ok(AST::Number(b))) => {
@@ -33,7 +33,7 @@ pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, St
                 return Err("cannot divide by zero".to_string());
             }
 
-            return Ok(AST::Float(a / b as f64));
+            return Ok((AST::Float(a / b as f64), AST::Null));
         }
 
         (Ok(AST::Number(a)), Ok(AST::Float(b))) => {
@@ -41,7 +41,7 @@ pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, St
                 return Err("cannot divide by zero".to_string());
             }
 
-            return Ok(AST::Float(a as f64 / b));
+            return Ok((AST::Float(a as f64 / b), AST::Null));
         }
 
         _ => {
@@ -50,22 +50,22 @@ pub fn div(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, St
     }
 }
 
-pub fn mul(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn mul(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match (eval(args[0].clone(), &mut HashMap::new()), eval(args[1].clone(), &mut HashMap::new())) {
         (Ok(AST::Number(a)), Ok(AST::Number(b))) => {
-            return Ok(AST::Number(a * b));
+            return Ok((AST::Number(a * b), AST::Null));
         }
 
         (Ok(AST::Float(a)), Ok(AST::Float(b))) => {
-            return Ok(AST::Float(a * b));
+            return Ok((AST::Float(a * b), AST::Null));
         }
 
         (Ok(AST::Float(a)), Ok(AST::Number(b))) => {
-            return Ok(AST::Float(a * b as f64));
+            return Ok((AST::Float(a * b as f64), AST::Null));
         }
 
         (Ok(AST::Number(a)), Ok(AST::Float(b))) => {
-            return Ok(AST::Float(a as f64 * b));
+            return Ok((AST::Float(a as f64 * b), AST::Null));
         }
 
         _ => {
@@ -74,14 +74,14 @@ pub fn mul(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
     }
 }
 
-pub fn abs(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn abs(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match eval(args[0].clone(), &mut HashMap::new()) {
         Ok(AST::Number(a)) => {
-            return Ok(AST::Number(a.abs()));
+            return Ok((AST::Number(a.abs()), AST::Null));
         }
 
         Ok(AST::Float(a)) => {
-            return Ok(AST::Float(a.abs()));
+            return Ok((AST::Float(a.abs()), AST::Null));
         }
 
         _ => {
@@ -90,14 +90,14 @@ pub fn abs(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
     }
 }
 
-pub fn sqrt(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn sqrt(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match eval(args[0].clone(), &mut HashMap::new()) {
         Ok(AST::Number(a)) => {
             if a < 0 {
                 return Err("sqrt requires a positive number".to_string());
             }
 
-            return Ok(AST::Float((a as f64).sqrt()));
+            return Ok((AST::Float((a as f64).sqrt()), AST::Null));
         }
 
         Ok(AST::Float(a)) => {
@@ -105,7 +105,7 @@ pub fn sqrt(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String>
                 return Err("sqrt requires a positive number".to_string());
             }
 
-            return Ok(AST::Float(a.sqrt()));
+            return Ok((AST::Float(a.sqrt()), AST::Null));
         }
 
         _ => {
@@ -114,7 +114,7 @@ pub fn sqrt(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String>
     }
 }
 
-pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match eval(args[0].clone(), &mut HashMap::new()) {
         Ok(AST::Number(a)) => {
             match eval(args[1].clone(), &mut HashMap::new()) {
@@ -123,7 +123,7 @@ pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
                         return Err("pow requires a positive number".to_string());
                     }
 
-                    return Ok(AST::Number(a.pow(b as u32)));
+                    return Ok((AST::Number(a.pow(b as u32)), AST::Null));
                 }
 
                 Ok(AST::Float(b)) => {
@@ -131,7 +131,7 @@ pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
                         return Err("pow requires a positive number".to_string());
                     }
 
-                    return Ok(AST::Float((a as f64).powf(b)));
+                    return Ok((AST::Float((a as f64).powf(b)), AST::Null));
                 }
 
                 _ => {
@@ -143,11 +143,11 @@ pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
         Ok(AST::Float(a)) => {
             match eval(args[1].clone(), &mut HashMap::new()) {
                 Ok(AST::Number(b)) => {
-                    return Ok(AST::Float(a.powf(b as f64)));
+                    return Ok((AST::Float(a.powf(b as f64)), AST::Null));
                 }
 
                 Ok(AST::Float(b)) => {
-                    return Ok(AST::Float(a.powf(b)));
+                    return Ok((AST::Float(a.powf(b)), AST::Null));
                 }
 
                 _ => {
@@ -162,14 +162,14 @@ pub fn pow(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> 
     }
 }
 
-pub fn floor(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn floor(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match eval(args[0].clone(), &mut HashMap::new()) {
         Ok(AST::Number(a)) => {
-            return Ok(AST::Number(a));
+            return Ok((AST::Number(a), AST::Null));
         }
 
         Ok(AST::Float(a)) => {
-            return Ok(AST::Number(a.floor() as i64));
+            return Ok((AST::Number(a.floor() as i64), AST::Null));
         }
 
         _ => {
@@ -178,14 +178,14 @@ pub fn floor(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String
     }
 }
 
-pub fn ceil(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn ceil(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     match eval(args[0].clone(), &mut HashMap::new()) {
         Ok(AST::Number(a)) => {
-            return Ok(AST::Number(a));
+            return Ok((AST::Number(a), AST::Null));
         }
 
         Ok(AST::Float(a)) => {
-            return Ok(AST::Number(a.ceil() as i64));
+            return Ok((AST::Number(a.ceil() as i64), AST::Null));
         }
 
         _ => {
@@ -194,12 +194,12 @@ pub fn ceil(args: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String>
     }
 }
 
-pub fn random(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
-    return Ok(AST::Float(rand::random()));
+pub fn random(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
+    return Ok((AST::Float(rand::random()), AST::Null));
 }
 
-pub fn random_int(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<AST, String> {
-    return Ok(AST::Number(rand::random()));
+pub fn random_int(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
+    return Ok((AST::Number(rand::random()), AST::Null));
 }
 
 pub fn get_object() -> HashMap<String, AST> {
@@ -310,7 +310,7 @@ mod tests {
     fn div_test() {
         let mut context = HashMap::new();
         let args = vec![AST::Number(10), AST::Number(2)];
-        let result = div(args, &mut context).unwrap();
+        let result = div(args, &mut context).unwrap().0;
 
         match result {
             AST::Number(a) => {
@@ -325,7 +325,7 @@ mod tests {
         let mut context = HashMap::new();
         let args = vec![AST::Number(-10)];
 
-        match abs(args, &mut context).unwrap() {
+        match abs(args, &mut context).unwrap().0 {
             AST::Number(a) => {
                 assert_eq!(a, 10);
             }
@@ -338,7 +338,7 @@ mod tests {
         let mut context = HashMap::new();
         let args = vec![AST::Number(9)];
 
-        match sqrt(args, &mut context).unwrap() {
+        match sqrt(args, &mut context).unwrap().0 {
             AST::Float(a) => {
                 assert_eq!(a, 3.0);
             }
@@ -352,7 +352,7 @@ mod tests {
         let mut context = HashMap::new();
         let args = vec![AST::Number(2), AST::Number(3)];
 
-        match pow(args, &mut context).unwrap() {
+        match pow(args, &mut context).unwrap().0 {
             AST::Number(a) => {
                 assert_eq!(a, 8);
             }
@@ -366,7 +366,7 @@ mod tests {
         let mut context = HashMap::new();
         let args = vec![AST::Float(3.14)];
 
-        match floor(args, &mut context).unwrap() {
+        match floor(args, &mut context).unwrap().0 {
             AST::Number(a) => {
                 assert_eq!(a, 3);
             }
@@ -380,7 +380,7 @@ mod tests {
         let mut context = HashMap::new();
         let args = vec![AST::Float(3.14)];
 
-        match ceil(args, &mut context).unwrap() {
+        match ceil(args, &mut context).unwrap().0 {
             AST::Number(a) => {
                 assert_eq!(a, 4);
             }

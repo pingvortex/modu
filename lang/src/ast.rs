@@ -60,7 +60,7 @@ pub enum AST {
     InternalFunction {
         name: String,
         args: Vec<String>,
-        call_fn: fn(Vec<AST>, &mut HashMap<String, AST>) -> Result<AST, String>,
+        call_fn: fn(Vec<AST>, &mut HashMap<String, AST>) -> Result<(AST, AST), String>,
     },
 
     Exists {
@@ -151,13 +151,17 @@ impl std::fmt::Display for AST {
         match self {
             // TODO: Implement more
             AST::String(s) => { 
-                let s = s.replace("\\t", "\t")
+                let mut s = s.replace("\\t", "\t")
                     .replace("\\n", "\n")
                     .replace("\\r", "\r")
                     .replace("\\\"", "\"")
-                    .replace("\\\\", "\\")
-                    .replace("\"", "")
-                    .replace("'", "");
+                    .replace("\\\\", "\\");
+            
+                if s.starts_with("\"") && s.ends_with("\"") {
+                    s = s[1..s.len() - 1].to_string();
+                } else if s.starts_with("'") && s.ends_with("'") {
+                    s = s[1..s.len() - 1].to_string();
+                }
 
                 write!(f, "{}", s)
             },
@@ -169,25 +173,17 @@ impl std::fmt::Display for AST {
             AST::Object { properties, line: _ } => {
                 write!(f, "{{ ")?;
 
-                let built_in_funcs = vec!["set"];
-
-                if properties.len() == 0 || properties.len() - built_in_funcs.len() <= 0 {
+                if properties.len() as i32 - crate::packages::json::BUILTINS.len() as i32 == 0 {
                     write!(f, "}}")?;
                 } else {
                     let mut str = String::new();
 
                     for (key, value) in properties {
-                        if built_in_funcs.contains(&key.as_str()) {
+                        if crate::packages::json::BUILTINS.contains(&key.as_str()) {
                             continue;
                         }
 
-                        let fixed_for_str = match value {
-                            // cause strings in obj should have ""
-                            AST::String(s) => format!("\"{}\"", s),
-                            _ => format!("{}", value),
-                        };
-
-                        str.push_str(&format!("{}: {}, ", key, fixed_for_str));
+                        str.push_str(&format!("\"{}\": {}, ", key, value));
                     }
 
                     if str.len() > 0 {

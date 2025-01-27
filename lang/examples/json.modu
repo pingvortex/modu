@@ -22,4 +22,17 @@ everything.set("bool", true);
 everything.set("null", null);
 everything.set("obj", obj);
 
-print(json.parse(json.stringify(everything)));
+print();
+
+let string = json.stringify(everything);
+let parsed = json.parse(string);
+
+print(parsed.get("string"));
+print(parsed.has("int"));
+print(parsed.obj);
+print(parsed);
+
+parsed.delete("obj");
+print(parsed);
+print(parsed.get("obj"));
+print(parsed.has("obj"));
