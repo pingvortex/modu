@@ -17,7 +17,17 @@ pub fn server() {
     rouille::start_server(format!("0.0.0.0:{}", port), move |request| {
         router!(request,
             (GET) (/) => {
-                rouille::Response::text(format!("OK v{}", env!("CARGO_PKG_VERSION")))
+                rouille::Response {
+                    status_code: 200,
+                    headers: vec![
+                        ("Content-Type".into(), "text/html".into()),
+                        ("Access-Control-Allow-Origin".into(), "*".into()),
+                        ("Access-Control-Allow-Methods".into(), "GET, POST, OPTIONS".into()),
+                        ("Access-Control-Allow-Headers".into(), "Content-Type".into()),
+                    ],
+                    data: rouille::ResponseBody::from_string(format!("OK v{}", env!("CARGO_PKG_VERSION"))),
+                    upgrade: None
+                }
             },
 
             (POST) (/eval) => {
