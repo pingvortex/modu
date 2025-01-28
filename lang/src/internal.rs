@@ -1,7 +1,6 @@
 // internal modu functions
 
 use std::collections::HashMap;
-use std::ffi::NulError;
 
 use crate::ast::AST;
 use crate::eval::eval;
