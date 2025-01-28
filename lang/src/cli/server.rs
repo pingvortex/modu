@@ -17,7 +17,7 @@ pub fn server() {
     rouille::start_server(format!("0.0.0.0:{}", port), move |request| {
         router!(request,
             (GET) (/) => {
-                rouille::Response::text("Modu interpreter server is running")
+                rouille::Response::text(format!("OK v{}", env!("CARGO_PKG_VERSION")))
             },
 
             (POST) (/eval) => {

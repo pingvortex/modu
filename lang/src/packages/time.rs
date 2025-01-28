@@ -6,16 +6,16 @@ use crate::ast::AST;
 use crate::eval::eval;
 
 
-pub fn now(_: Vec<AST>,  _: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn now(_: Vec<AST>,  _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let now = time::SystemTime::now()
         .duration_since(time::UNIX_EPOCH)
         .map_err(|e| e.to_string())?;
 
-    Ok(AST::Number(now.as_secs() as i64))
+    Ok((AST::Number(now.as_secs() as i64), AST::Null))
 }
 
 
-pub fn to_iso_8601(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn to_iso_8601(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let time = match eval(args[0].clone(), context) {
         Ok(AST::Number(time)) => time,
         Ok(AST::Float(time)) => time as i64,
@@ -29,10 +29,10 @@ pub fn to_iso_8601(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result
     let time = time.format("%+").to_string();
 
 
-    Ok(AST::String(time))
+    Ok((AST::String(time), AST::Null))
 }
 
-pub fn to_local_date_time(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn to_local_date_time(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let time = match eval(args[0].clone(), context) {
         Ok(AST::Number(time)) => time,
         Ok(AST::Float(time)) => time as i64,
@@ -46,7 +46,7 @@ pub fn to_local_date_time(args: Vec<AST>, context: &mut HashMap<String, AST>) ->
     let time = time.format("%c").to_string();
 
 
-    Ok(AST::String(time))
+    Ok((AST::String(time), AST::Null))
 }
 
 pub fn get_object() -> HashMap<String, AST> {
@@ -83,7 +83,7 @@ mod tests {
 
     #[test]
     fn get_current_time() {
-        let time = now(vec![], &mut HashMap::new()).unwrap();
+        let time = now(vec![], &mut HashMap::new()).unwrap().0;
         
         assert_eq!(
             time,

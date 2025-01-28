@@ -11,6 +11,7 @@
     import { base } from "$app/paths";
 
     let language = new Compartment, tabsize = new Compartment;
+    let moduVersion = "";
 
     let state = EditorState.create({
         doc: `fn yap(str) {
@@ -22,7 +23,7 @@ yap("Hello, World!");
 // Expected Output:
 //
 // Hello, World!
-        `,
+`,
         extensions: [
             basicSetup,
             language.of(rust()),
@@ -76,6 +77,10 @@ yap("Hello, World!");
                 parent: document.querySelector("#code"),
             });
         }
+
+        fetch(PUBLIC_VITE_IDE_BACKEND + "/")
+            .then(res => res.text())
+            .then(version => moduVersion = version.split(" ")[1]);
     });
 
     let output = "Run the code to see the output";
@@ -142,6 +147,7 @@ yap("Hello, World!");
 <div class="flex flex-col w-full h-screen">
     <div class="w-full border-b border-b-ctp-surface0 p-2 px-4 flex">
         <a href={base + "/"} class="text-3xl font-bold inline-block bg-clip-text text-transparent bg-gradient-to-r from-ctp-red to-75% to-ctp-yellow">Modu</a>
+        <p class="ml-2 mt-auto text-xl">{moduVersion ? `${moduVersion}` : ""}</p>
 
         <div class="ml-auto my-auto">
             <a href="docs" class="text-2xl">Docs</a>

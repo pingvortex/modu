@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::ast::AST;
 use crate::eval::eval;
 
-pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     // (path_to_lib, function_name, arg1, arg2, ...)
 
     if args.len() < 2 {
@@ -69,14 +69,14 @@ pub fn call(mut args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AS
         lib.close().unwrap();
 
         if result_ptr.is_null() {
-            return Ok(AST::Null);
+            return Ok((AST::Null, AST::Null));
         };
 
         if (result_ptr as i64) <= i32::MAX as i64 && (result_ptr as i64) >= i32::MIN as i64 {
-            return Ok(AST::Number(result_ptr as i64));
+            return Ok((AST::Number(result_ptr as i64), AST::Null));
         } else {
             let str = std::ffi::CStr::from_ptr(result_ptr as *const _);
-            return Ok(AST::String(str.to_string_lossy().into_owned()))
+            return Ok((AST::String(str.to_string_lossy().into_owned()), AST::Null))
         }
     }
 }

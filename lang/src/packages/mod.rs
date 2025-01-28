@@ -3,6 +3,7 @@ mod file;
 mod time;
 mod os;
 mod ffi;
+pub mod json;
 
 use crate::ast::AST;
 
@@ -42,6 +43,11 @@ pub fn get_package(name: &str) -> Option<AST> {
 
 		"ffi" => Some(AST::Object {
 			properties: ffi::get_object(),
+			line: 0
+		}),
+
+		"json" => Some(AST::Object {
+			properties: json::get_object(),
 			line: 0
 		}),
 

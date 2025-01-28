@@ -48,7 +48,7 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                                 AST::InternalFunction { name: _, args: f_args, call_fn } => {
                                     if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
-                                        return call_fn(args, context);
+                                        return Ok(call_fn(args, context)?.0);
                                     } else {
                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                     }
@@ -245,7 +245,27 @@ pub fn eval(expr: AST, context: &mut HashMap<String, AST>) -> Result<AST, String
 
                                                 AST::InternalFunction { name, args: f_args, call_fn } => {
                                                     if args.len() == f_args.len() || f_args.last().unwrap() == "__args__" {
-                                                        return call_fn(args, context);
+                                                        return Ok(call_fn(args, context)?.0);
+                                                    } else if f_args[0] == "self" && args.len() == f_args.len() - 1 || f_args.last().unwrap() == "__args__" {
+                                                            let mut new_args = vec![AST::Object { properties: properties.clone(), line: 0 }];
+
+                                                            for arg in args {
+                                                                new_args.push(arg);
+                                                            }
+
+                                                            let result = call_fn(new_args, context)?;
+
+                                                            match result.1.clone() {
+                                                                AST::Object { properties, line: _ } => {
+                                                                    context.insert(object.unwrap(), AST::Object { properties, line: 0 });
+                                                                }
+
+                                                                _ => {}
+                                                            }
+
+                                                            return Ok(result.0);
+                                                    } else if f_args[0] == "self" {
+                                                        return Err(format!("{} takes {} argument(s)", name, f_args.len() - 1));
                                                     } else {
                                                         return Err(format!("{} takes {} argument(s)", name, f_args.len()));
                                                     }

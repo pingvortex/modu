@@ -15,13 +15,13 @@ fn clean_command(cmd: String) -> String {
 	return clean;
 }
 
-pub fn exec(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn exec(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
 	if args.len() != 1 {
 		return Err("os.exec requires exactly one argument".to_string());
 	}
 
 	let command = match eval(args[0].clone(), context) {
-		Ok(AST::String(value)) => value,
+		Ok(AST::String(value))=> value,
 
 		Ok(_) => return Err("os.exec argument must be a string".to_string()),
 
@@ -50,7 +50,7 @@ pub fn exec(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, S
 		Ok(output) => {
 			let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
 			if output.status.success() {
-				Ok(AST::String(stdout))
+				Ok((AST::String(stdout), AST::Null))
 			} else {
 				let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
 				Err(stderr)
@@ -95,7 +95,7 @@ mod tests {
 	fn test_exec_echo() {
 		let args = vec![AST::String("echo hello".to_string())];
 		let result = exec(args, &mut HashMap::new()).unwrap();
-		match result {
+		match result.0 {
 			AST::String(value) => {
 				assert!(value.contains("hello"));
 			},

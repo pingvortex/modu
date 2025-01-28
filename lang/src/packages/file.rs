@@ -5,20 +5,20 @@ use std::io::prelude::*;
 use crate::ast::AST;
 use crate::eval::eval;
 
-pub fn read(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn read(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let path = eval(args[0].clone(), context)?;
 
     match path {
         AST::String(val) => {
             let contents = std::fs::read_to_string(val).map_err(|e| e.to_string())?;
-            Ok(AST::String(contents))
+            Ok((AST::String(contents), AST::Null))
         }
 
         _ => Err("read() expects a string".to_string())
     }
 }
 
-pub fn write(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn write(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let path = eval(args[0].clone(), context)?;
     let contents = eval(args[1].clone(), context)?;
 
@@ -29,14 +29,14 @@ pub fn write(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, 
                 .replace("\\t", "\t");
 
             std::fs::write(path, contents).map_err(|e| e.to_string())?;
-            Ok(AST::Null)
+            Ok((AST::Null, AST::Null))
         }
 
         _ => Err("write() expects two strings".to_string())
     }
 }
 
-pub fn write_append(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<AST, String> {
+pub fn write_append(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let path = eval(args[0].clone(), context)?;
     let contents = eval(args[1].clone(), context)?;
 
@@ -56,7 +56,7 @@ pub fn write_append(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Resul
                 return Err(e.to_string());
             }
 
-            Ok(AST::Null)
+            Ok((AST::Null, AST::Null))
         }
 
         _ => Err("write_append() expects two strings".to_string())

@@ -1,0 +1,38 @@
+import "json" as json;
+
+let obj = json.new();
+let obj2 = json.new();
+
+obj2.set("name", "test2");
+obj2.set("age", 500);
+obj.set("name", "test");
+obj.set("obj", obj2);
+
+print(obj.name);
+print(obj);
+print(json.new());
+print(json.stringify(obj));
+print(json.stringify(json.new()));
+
+let everything = json.new();
+everything.set("string", "hello");
+everything.set("int", 5);
+everything.set("float", 5.5);
+everything.set("bool", true);
+everything.set("null", null);
+everything.set("obj", obj);
+
+print();
+
+let string = json.stringify(everything);
+let parsed = json.parse(string);
+
+print(parsed.get("string"));
+print(parsed.has("int"));
+print(parsed.obj);
+print(parsed);
+
+parsed.delete("obj");
+print(parsed);
+print(parsed.get("obj"));
+print(parsed.has("obj"));
