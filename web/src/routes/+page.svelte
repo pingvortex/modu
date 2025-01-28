@@ -67,7 +67,7 @@
                 on:mouseleave={() => moreExamplesHovered = false}
             >
                 <CircleHelp size={20} class="my-auto" />
-                <span class="ml-1">More Examples</span>
+                <span class="ml-2">More Examples</span>
                 <ExternalLink size={20} class={`my-auto ${moreExamplesHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
 
@@ -78,7 +78,7 @@
                 on:mouseleave={() => docsHovered = false}
             >
                 <Book size={20} class="my-auto" />
-                <span class="ml-1 mt-0.5">Docs</span>
+                <span class="ml-2">Docs</span>
                 <ExternalLink size={20} class={`my-auto ${docsHovered ? "w-6 ml-1" : "w-0"} transition-all duration-300`} />
             </a>
 

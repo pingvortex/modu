@@ -56,11 +56,13 @@ print(ffi.call("./libffi_test.so", "add", str(5), "2"));
 // 7
 ```
 
-As you can see, we have to use string arguments, any other will cause errors.
+As you can see, we use string arguments, even for numbers, any other will cause errors.
 
 Here is the code for the library:
 ```rust
+// Use no_mangle to preserve the function name
 #[unsafe(no_mangle)]
+// extern "C" is needed so it works (i dont have a better explanation)
 pub extern "C" fn add(
     // Amount of args in argv
     argc: std::ffi::c_int,
@@ -68,7 +70,7 @@ pub extern "C" fn add(
     // we will turn this to int later
     argv: *const *const std::ffi::c_char
 ) -> i32 {
-    // We can check argc to enforce arg requirements/limints
+    // We can check argc to enforce arg requirements/limits
     if argc != 2 {
         panic!("add requires 2 arguments");
     }
@@ -90,6 +92,7 @@ pub extern "C" fn add(
     };
     let num2 = num2.to_str().unwrap().parse::<i32>().unwrap();
 
+    // "return num1 + num2;" would do the exact same thing btw
     num1 + num2
 }
 ```

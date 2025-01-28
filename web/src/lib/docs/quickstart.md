@@ -12,7 +12,7 @@ $ cargo +nightly install modu
 ```
 
 More methods coming soon \
-The 100% newest binaries can be downloaded from [action runs](https://github.com/Cyteon/modu/actions/workflows/rust.yml)
+The absolutely newest binaries can be downloaded from [action runs](https://github.com/Cyteon/modu/actions/workflows/rust.yml), or the action runs from any [branches that might be newer](https://github.com/Cyteon/modu/branches/active) than main.
 
 ## Running
 
