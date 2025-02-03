@@ -3124,6 +3124,16 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 print_res(result.unwrap());
             }
 
+            AST::PropertyAccess { object, property, line } => {
+                let result = eval(AST::PropertyAccess { object, property, line }, context);
+
+                if result.is_err() {
+                    return Err((result.err().unwrap(), line));
+                }
+
+                print_res(result.unwrap());
+            }
+
             _ => {
                 if verbose {
                     println!("I'm not sure what to do with a {:?}", item);
