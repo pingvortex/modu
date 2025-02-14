@@ -265,7 +265,7 @@ pub fn has(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, A
 	};
 
 	let value = match properties.get(&key) {
-		Some(value) => AST::Boolean(true),
+		Some(_) => AST::Boolean(true),
 		None => AST::Boolean(false),
 	};
 
