@@ -10,8 +10,51 @@ pub fn new(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), Stri
         AST::Number(0)
     );
 
+    obj.insert(
+        "at".to_string(),
+        AST::InternalFunction {
+            name: "at".to_string(),
+            args: vec!["self".to_string(), "index".to_string()],
+            call_fn: at
+        }
+    );
+    obj.insert(
+        "push".to_string(),
+        AST::InternalFunction {
+            name: "push".to_string(),
+            args: vec!["self".to_string(), "item".to_string()],
+            call_fn: push
+        }
+    );
+    obj.insert(
+        "pop".to_string(),
+        AST::InternalFunction {
+            name: "pop".to_string(),
+            args: vec!["self".to_string()],
+            call_fn: pop
+        }
+    );
+    obj.insert(
+        "shift".to_string(),
+        AST::InternalFunction {
+            name: "shift".to_string(),
+            args: vec!["self".to_string()],
+            call_fn: shift
+        }
+    );
+    obj.insert(
+        "unshift".to_string(),
+        AST::InternalFunction {
+            name: "unshift".to_string(),
+            args: vec!["self".to_string(), "item".to_string()],
+            call_fn: unshift
+        }
+    );
+
     Ok((AST::Object { properties: obj, line: 0 }, AST::Null))
 }
+
+// Self-functions
 
 pub fn at(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let arr = eval(args[0].clone(), context)?;
@@ -243,46 +286,6 @@ pub fn get_object() -> HashMap<String, AST> {
             call_fn: new
         }
     );
-    object.insert(
-        "at".to_string(),
-        AST::InternalFunction {
-            name: "at".to_string(),
-            args: vec!["arr".to_string(), "index".to_string()],
-            call_fn: at
-        }
-    );
-    object.insert(
-        "push".to_string(),
-        AST::InternalFunction {
-            name: "push".to_string(),
-            args: vec!["arr".to_string(), "item".to_string()],
-            call_fn: push
-        }
-    );
-    object.insert(
-        "pop".to_string(),
-        AST::InternalFunction {
-            name: "pop".to_string(),
-            args: vec!["arr".to_string()],
-            call_fn: pop
-        }
-    );
-    object.insert(
-        "shift".to_string(),
-        AST::InternalFunction {
-            name: "shift".to_string(),
-            args: vec!["arr".to_string()],
-            call_fn: shift
-        }
-    );
-    object.insert(
-        "unshift".to_string(),
-        AST::InternalFunction {
-            name: "unshift".to_string(),
-            args: vec!["arr".to_string(), "item".to_string()],
-            call_fn: unshift
-        }
-    );
 
     object
 }
@@ -295,6 +298,6 @@ mod tests {
     fn get_object_test() {
         let object = get_object();
 
-        assert_eq!(object.len(), 6);
+        assert_eq!(object.len(), 1);
     }
 }
