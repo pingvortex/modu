@@ -2,8 +2,15 @@ use std::collections::HashMap;
 use crate::ast::AST;
 use crate::eval::eval;
 
+static IDENTITY: &str = "\x1b \x1b"; // name of the property used to indentify arrays
+
 pub fn new(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let mut obj: HashMap<String, AST> = HashMap::new();
+
+    obj.insert(
+        IDENTITY.to_string(),
+        AST::String("array".to_string())
+    ); // this is how you should identify arrays
 
     obj.insert(
         "length".to_string(),
@@ -54,6 +61,27 @@ pub fn new(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), Stri
     Ok((AST::Object { properties: obj, line: 0 }, AST::Null))
 }
 
+// tests if an object is an array
+fn check_array(obj: HashMap<String, AST>) -> bool {
+    let prop = obj.get(&IDENTITY.to_string());
+    if let Some(val) = prop {
+        if let AST::String(valstr) = val {
+            return *valstr == "array".to_string();
+        }
+        return false;
+    }
+    false
+}
+
+pub fn isarray(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
+    let arr = eval(args[0].clone(), context)?;
+
+    if let AST::Object { properties: obj, line: _ } = arr {
+        return Ok((AST::Boolean(check_array(obj.clone())), AST::Null));
+    }
+    Ok((AST::Boolean(false), AST::Null))
+}
+
 // Self-functions
 
 pub fn at(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
@@ -62,6 +90,9 @@ pub fn at(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, AS
     
     match (arr, index) {
         (AST::Object { properties: obj, line: _ }, AST::Number(i)) => {
+            if !check_array(obj.clone()) {
+                return Err("first argument is not an array".to_string())
+            }
             let itemornone = obj.get(&i.to_string());
             if let None = itemornone {
                 return Err("no such element at that index".to_string());
@@ -115,6 +146,9 @@ pub fn pop(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, A
     match arr {
         AST::Object { properties: mut obj, line: _ } => {
             let objclone = obj.clone();
+            if !check_array(obj.clone()) {
+                return Err("first argument is not an array".to_string())
+            }
             let lenornone = objclone.get(&"length".to_string());
 
             if let None = lenornone {
@@ -157,6 +191,9 @@ pub fn shift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST,
     match arr {
         AST::Object { properties: mut obj, line: _ } => {
             let objclone = obj.clone();
+            if !check_array(obj.clone()) {
+                return Err("first argument is not an array".to_string())
+            }
             let lenornone = objclone.get(&"length".to_string());
 
             if let None = lenornone {
@@ -224,6 +261,9 @@ pub fn unshift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AS
     match arr {
         AST::Object { properties: mut obj, line: _ } => {
             let objclone = obj.clone();
+            if !check_array(obj.clone()) {
+                return Err("first argument is not an array".to_string())
+            }
 
             let lenornone = objclone.get(&"length".to_string());
 
@@ -287,6 +327,15 @@ pub fn get_object() -> HashMap<String, AST> {
         }
     );
 
+    object.insert(
+        "isarray".to_string(),
+        AST::InternalFunction {
+            name: "isarray".to_string(),
+            args: vec!["arr".to_string()],
+            call_fn: isarray
+        }
+    );
+
     object
 }
 
@@ -298,6 +347,6 @@ mod tests {
     fn get_object_test() {
         let object = get_object();
 
-        assert_eq!(object.len(), 1);
+        assert_eq!(object.len(), 2);
     }
 }
