@@ -98,7 +98,7 @@ pub fn push(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, 
 
                     obj.insert("length".to_string(), AST::Number(length+1));
 
-                    Ok((AST::Null, AST::Null))
+                    Ok((AST::Null, AST::Object { properties: obj, line: 0 }))
                 }
 
                 _ => Err("corrupted array".to_string())
@@ -140,7 +140,7 @@ pub fn pop(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST, A
                     obj.remove(&(length-1).to_string());
                     obj.insert("length".to_string(), AST::Number(length-1));
 
-                    Ok((last.clone(), AST::Null))
+                    Ok((last.clone(), AST::Object { properties: obj, line: 0 }))
                 }
                 
                 _ => Err("corrupted array".to_string())
@@ -206,7 +206,7 @@ pub fn shift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST,
                     }
                     obj.insert("length".to_string(), AST::Number(length-1));
 
-                    Ok((first.clone(), AST::Null))
+                    Ok((first.clone(), AST::Object { properties: obj, line: 0 }))
                 }
 
                 _ => Err("corrupted array".to_string())
@@ -264,7 +264,7 @@ pub fn unshift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AS
                     }
                     obj.insert("length".to_string(), AST::Number(length+1));
 
-                    Ok((AST::Null, AST::Null))
+                    Ok((AST::Null, AST::Object { properties: obj, line: 0 }))
                 }
 
                 _ => Err("corrupted array".to_string())
