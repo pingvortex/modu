@@ -4,6 +4,8 @@ mod time;
 mod os;
 mod ffi;
 pub mod json;
+pub mod array;
+mod uuid;
 
 use crate::ast::AST;
 
@@ -48,6 +50,16 @@ pub fn get_package(name: &str) -> Option<AST> {
 
 		"json" => Some(AST::Object {
 			properties: json::get_object(),
+			line: 0
+		}),
+
+		"array" => Some(AST::Object {
+			properties: array::get_object(),
+			line: 0
+		}),
+
+		"uuid" => Some(AST::Object {
+			properties: uuid::get_object(),
 			line: 0
 		}),
 
