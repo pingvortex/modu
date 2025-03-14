@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use crate::ast::AST;
 use crate::eval::eval;
 
-static IDENTITY: &str = "\x1b \x1b"; // name of the property used to indentify arrays
+pub static IDENTITY: &str = "\x1b \x1b"; // name of the property used to indentify arrays
+pub static BUILTINS: [&str; 6] = ["length", "at", "push", "pop", "shift", "unshift"];
 
 pub fn new(_: Vec<AST>, _: &mut HashMap<String, AST>) -> Result<(AST, AST), String> {
     let mut obj: HashMap<String, AST> = HashMap::new();
@@ -241,6 +242,18 @@ pub fn shift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST,
                             i += 1;
                         }
                     }
+
+                    let default_obj = new(vec![], context).unwrap().0;
+
+                    match default_obj {
+                        AST::Object { properties: default_obj, line: _ } => {
+                            for (key, value) in default_obj {
+                                obj.insert(key, value);
+                            }
+                        }
+                        _ => {}
+                    }
+
                     obj.insert("length".to_string(), AST::Number(length-1));
 
                     Ok((first.clone(), AST::Object { properties: obj, line: 0 }))
@@ -302,6 +315,18 @@ pub fn unshift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AS
                             i += 1;
                         }
                     }
+
+                    let default_obj = new(vec![], context).unwrap().0;
+
+                    match default_obj {
+                        AST::Object { properties: default_obj, line: _ } => {
+                            for (key, value) in default_obj {
+                                obj.insert(key, value);
+                            }
+                        }
+                        _ => {}
+                    }
+
                     obj.insert("length".to_string(), AST::Number(length+1));
 
                     Ok((AST::Null, AST::Object { properties: obj, line: 0 }))

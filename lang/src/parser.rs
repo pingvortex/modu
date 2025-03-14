@@ -3075,8 +3075,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
                 }
-
-                print_res(result.unwrap());
             }
 
             AST::PropertyCall { object, property, args, line } => {
@@ -3087,8 +3085,6 @@ pub fn parse(input: &str, context: &mut HashMap<String, AST>) -> Result<(), (Str
                 if result.is_err() {
                     return Err((result.err().unwrap(), line));
                 }
-
-                print_res(result.unwrap());
             }
 
             AST::Function { name, args, body, line } => {
