@@ -250,7 +250,7 @@ pub fn shift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AST,
             }
         }
 
-        _ => Err("pop() expects an array".to_string())
+        _ => Err("shift() expects an array".to_string())
     }
 }
 
@@ -311,7 +311,7 @@ pub fn unshift(args: Vec<AST>, context: &mut HashMap<String, AST>) -> Result<(AS
             }
         }
 
-        _ => Err("pop() expects an array".to_string())
+        _ => Err("unshift() expects an array".to_string())
     }
 }
 
